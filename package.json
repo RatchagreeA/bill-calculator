@@ -6,14 +6,18 @@
   "scripts": {
     "build": "tsc && webpack",
     "dev": "webpack serve --mode development",
-    "start": "npm run build && http-server dist"
+    "start": "npm run build && http-server dist",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d ."
   },
+  "homepage": "https://RatchagreeA.github.io/bill-calculator",
   "devDependencies": {
+    "gh-pages": "^6.3.0",
+    "http-server": "^14.0.0",
+    "ts-loader": "^9.0.0",
     "typescript": "^5.0.0",
     "webpack": "^5.0.0",
     "webpack-cli": "^5.0.0",
-    "webpack-dev-server": "^4.0.0",
-    "ts-loader": "^9.0.0",
-    "http-server": "^14.0.0"
+    "webpack-dev-server": "^4.0.0"
   }
 }
