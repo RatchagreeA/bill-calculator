@@ -33,12 +33,6 @@ export class BillCalculatorUI {
               <button class="delete-bill-btn" onclick="billUI.deleteCurrentBill()">Delete Bill</button>
             </div>
 
-            <!-- Items List -->
-            <div class="subsection">
-              <h3>Items</h3>
-              <div id="itemsList"></div>
-            </div>
-
             <!-- Interactive Summary Table -->
             <div class="subsection">
               <div class="summary-header">
@@ -92,7 +86,7 @@ export class BillCalculatorUI {
       </div>
 
       <style>
-        .container { max-width: 1200px; margin: 0; auto; padding: 20px; font-family: Arial, sans-serif; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif; }
         .section { margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
         .subsection { margin-bottom: 20px; padding: 15px; background-color: #f9f9f9; border-radius: 5px; }
         .form-group { margin-bottom: 10px; }
@@ -418,7 +412,6 @@ export class BillCalculatorUI {
     document.getElementById('currentBillSection')!.style.display = 'block';
     
     this.updateBillsList();
-    this.updateItemsList();
     this.updateSummaryTable();
   }
 
@@ -500,7 +493,6 @@ export class BillCalculatorUI {
 
     this.calculator.addItem(this.currentBillId, itemName, itemPrice);
     this.closeItemModal();
-    this.updateItemsList();
     this.updateSummaryTable();
   }
 
@@ -536,7 +528,6 @@ export class BillCalculatorUI {
     
     if (confirm(`Remove "${item?.name}" ($${item?.price.toFixed(2)}) from this bill?`)) {
       this.calculator.removeItem(this.currentBillId, itemId);
-      this.updateItemsList();
       this.updateSummaryTable();
     }
   }
@@ -572,38 +563,6 @@ export class BillCalculatorUI {
     }).join('');
   }
 
-  private updateItemsList(): void {
-    if (!this.currentBillId) return;
-
-    const bill = this.calculator.getBill(this.currentBillId);
-    if (!bill) return;
-
-    const itemsList = document.getElementById('itemsList')!;
-    
-    if (bill.items.length === 0) {
-      itemsList.innerHTML = `
-        <div class="empty-items-message">
-          <h4>No items added yet</h4>
-          <p>Add items to start splitting costs</p>
-          <p style="color: #007bff; font-weight: bold;">↘ Use the "Add Item" button below</p>
-        </div>
-      `;
-      return;
-    }
-
-    itemsList.innerHTML = `
-      <div class="list-container">
-        <strong>Items (${bill.items.length}):</strong><br>
-        ${bill.items.map(item => `
-          <span class="item-info">
-            ${item.name} - $${item.price.toFixed(2)}
-            <button class="remove-btn" onclick="billUI.removeItem('${item.id}')">×</button>
-          </span>
-        `).join('')}
-      </div>
-    `;
-  }
-
   private updateSummaryTable(): void {
     if (!this.currentBillId) return;
 
@@ -623,26 +582,26 @@ export class BillCalculatorUI {
     addPersonBtn.style.display = 'inline-block';
     addItemBtn.style.display = 'inline-block';
 
-    if (bill.items.length === 0) {
-      summaryTable.innerHTML = `
-        <div class="no-data-message">
-          No items to split yet. Add items first to see the payment summary.
-        </div>
-      `;
-      return;
-    }
+    // if (bill.items.length === 0) {
+    //   summaryTable.innerHTML = `
+    //     <div class="no-data-message">
+    //       No items to split yet. Add items first to see the payment summary.
+    //     </div>
+    //   `;
+    //   return;
+    // }
 
     // If no persons, show special message with add person option
-    if (bill.persons.length === 0) {
-      summaryTable.innerHTML = `
-        <div class="empty-persons-message">
-          <h4>No persons added yet</h4>
-          <p>Add people to split the bill costs</p>
-          <p style="color: #28a745; font-weight: bold;">↗ Use the "Add Person" button above</p>
-        </div>
-      `;
-      return;
-    }
+    // if (bill.persons.length === 0) {
+    //   summaryTable.innerHTML = `
+    //     <div class="empty-persons-message">
+    //       <h4>No persons added yet</h4>
+    //       <p>Add people to split the bill costs</p>
+    //       <p style="color: #28a745; font-weight: bold;">↗ Use the "Add Person" button above</p>
+    //     </div>
+    //   `;
+    //   return;
+    // }
 
     // Create matrix data structure
     const matrix: { [personId: string]: { [itemId: string]: number } } = {};
@@ -747,16 +706,16 @@ export class BillCalculatorUI {
       </div>
     `;
 
-    // Add keyboard support for modal
+    // Add keyboard support for modals
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && document.getElementById('personInputModal')!.style.display === 'block') {
         this.addPersonFromModal();
       }
-      if (e.key === 'Escape' && document.getElementById('personInputModal')!.style.display === 'block') {
-        this.closePersonModal();
-      }
       if (e.key === 'Enter' && document.getElementById('itemInputModal')!.style.display === 'block') {
         this.addItemFromModal();
+      }
+      if (e.key === 'Escape' && document.getElementById('personInputModal')!.style.display === 'block') {
+        this.closePersonModal();
       }
       if (e.key === 'Escape' && document.getElementById('itemInputModal')!.style.display === 'block') {
         this.closeItemModal();
