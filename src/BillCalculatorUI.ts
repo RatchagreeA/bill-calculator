@@ -1012,15 +1012,15 @@ export class BillCalculatorUI {
     addPersonBtn.style.display = 'inline-block';
     addItemBtn.style.display = 'inline-block';
 
-    if (bill.items.length === 0) {
-      summaryTable.innerHTML = `
-        <div class="no-data-message">
-          No items to split yet. Add items first to see the payment summary.
-        </div>
-      `;
-      exportBtn.style.display = 'none';
-      return;
-    }
+    // if (bill.items.length === 0) {
+    //   summaryTable.innerHTML = `
+    //     <div class="no-data-message">
+    //       No items to split yet. Add items first to see the payment summary.
+    //     </div>
+    //   `;
+    //   exportBtn.style.display = 'none';
+    //   return;
+    // }
 
     // If no persons, show special message with add person option
     if (bill.persons.length === 0) {
