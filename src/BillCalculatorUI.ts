@@ -93,19 +93,56 @@ export class BillCalculatorUI {
         .form-group input { margin-right: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
         .form-group button { padding: 8px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
         .form-group button:hover { background-color: #0056b3; }
+        
+        /* Bills List - Horizontal Layout */
+        #billsList {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 15px;
+          margin-top: 15px;
+        }
         .bill-item { 
-          padding: 10px; 
-          margin: 5px 0; 
+          flex: 1 1 300px;
+          min-width: 280px;
+          max-width: 350px;
+          padding: 15px; 
           background-color: #e9ecef; 
-          border-radius: 4px; 
+          border-radius: 8px; 
           cursor: pointer; 
           display: flex; 
-          justify-content: space-between; 
-          align-items: center;
+          flex-direction: column;
+          justify-content: space-between;
+          transition: all 0.2s ease;
+          border: 2px solid transparent;
         }
-        .bill-item.active { background-color: #007bff; color: white; }
-        .bill-item-content { flex-grow: 1; }
-        .bill-item-actions { display: flex; gap: 10px; }
+        .bill-item:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .bill-item.active { 
+          background-color: #007bff; 
+          color: white; 
+          border-color: #0056b3;
+        }
+        .bill-item-content { 
+          flex-grow: 1; 
+          margin-bottom: 10px;
+        }
+        .bill-item-title {
+          font-size: 16px;
+          font-weight: bold;
+          margin-bottom: 8px;
+        }
+        .bill-item-stats {
+          font-size: 12px;
+          line-height: 1.4;
+        }
+        .bill-item-actions { 
+          display: flex; 
+          justify-content: flex-end;
+          margin-top: 10px;
+        }
+        
         .bill-header { 
           display: flex; 
           justify-content: space-between; 
@@ -348,6 +385,7 @@ export class BillCalculatorUI {
           padding: 40px; 
           color: #6c757d; 
           font-style: italic; 
+          flex: 1 1 100%;
         }
         .summary-table-container {
           overflow-x: auto;
@@ -379,6 +417,16 @@ export class BillCalculatorUI {
           border: 2px dashed #ddd;
           border-radius: 8px;
           margin: 20px 0;
+        }
+        
+        /* Responsive design for smaller screens */
+        @media (max-width: 768px) {
+          #billsList {
+            flex-direction: column;
+          }
+          .bill-item {
+            max-width: none;
+          }
         }
       </style>
     `;
@@ -548,9 +596,11 @@ export class BillCalculatorUI {
       return `
         <div class="bill-item ${bill.id === this.currentBillId ? 'active' : ''}">
           <div class="bill-item-content" onclick="billUI.selectBill('${bill.id}')">
-            <div><strong>${bill.name}</strong></div>
-            <div style="font-size: 12px; color: ${bill.id === this.currentBillId ? '#ffffff' : '#6c757d'};">
-              ${bill.persons.length} person(s) • ${bill.items.length} item(s) • Total: $${totalAmount.toFixed(2)}
+            <div class="bill-item-title">${bill.name}</div>
+            <div class="bill-item-stats" style="color: ${bill.id === this.currentBillId ? '#ffffff' : '#6c757d'};">
+              👥 ${bill.persons.length} person(s)<br>
+              🧾 ${bill.items.length} item(s)<br>
+              💰 Total: $${totalAmount.toFixed(2)}
             </div>
           </div>
           <div class="bill-item-actions">
@@ -582,26 +632,26 @@ export class BillCalculatorUI {
     addPersonBtn.style.display = 'inline-block';
     addItemBtn.style.display = 'inline-block';
 
-    // if (bill.items.length === 0) {
-    //   summaryTable.innerHTML = `
-    //     <div class="no-data-message">
-    //       No items to split yet. Add items first to see the payment summary.
-    //     </div>
-    //   `;
-    //   return;
-    // }
+    if (bill.items.length === 0) {
+      summaryTable.innerHTML = `
+        <div class="no-data-message">
+          No items to split yet. Add items first to see the payment summary.
+        </div>
+      `;
+      return;
+    }
 
     // If no persons, show special message with add person option
-    // if (bill.persons.length === 0) {
-    //   summaryTable.innerHTML = `
-    //     <div class="empty-persons-message">
-    //       <h4>No persons added yet</h4>
-    //       <p>Add people to split the bill costs</p>
-    //       <p style="color: #28a745; font-weight: bold;">↗ Use the "Add Person" button above</p>
-    //     </div>
-    //   `;
-    //   return;
-    // }
+    if (bill.persons.length === 0) {
+      summaryTable.innerHTML = `
+        <div class="empty-persons-message">
+          <h4>No persons added yet</h4>
+          <p>Add people to split the bill costs</p>
+          <p style="color: #28a745; font-weight: bold;">↗ Use the "Add Person" button above</p>
+        </div>
+      `;
+      return;
+    }
 
     // Create matrix data structure
     const matrix: { [personId: string]: { [itemId: string]: number } } = {};
