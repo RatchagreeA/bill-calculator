@@ -92,7 +92,7 @@ export class BillCalculatorUI {
       </div>
 
       <style>
-        .container { max-width: 1200px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif; }
+        .container { max-width: 1200px; margin: 0; auto; padding: 20px; font-family: Arial, sans-serif; }
         .section { margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
         .subsection { margin-bottom: 20px; padding: 15px; background-color: #f9f9f9; border-radius: 5px; }
         .form-group { margin-bottom: 10px; }
@@ -228,10 +228,32 @@ export class BillCalculatorUI {
         .item-header {
           background-color: #f8f9fa !important;
           font-weight: bold;
-          min-width: 100px;
+          min-width: 120px;
           border: 1px solid #ddd;
-          padding: 12px;
+          padding: 8px;
+          text-align: center;
         }
+        .item-header-content {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 5px;
+        }
+        .item-name-price {
+          text-align: center;
+          line-height: 1.2;
+        }
+        .item-delete-btn {
+          background-color: #dc3545;
+          color: white;
+          border: none;
+          padding: 2px 6px;
+          border-radius: 3px;
+          cursor: pointer;
+          font-size: 10px;
+          font-weight: normal;
+        }
+        .item-delete-btn:hover { background-color: #c82333; }
         
         /* Total column styles */
         .total-column {
@@ -509,7 +531,10 @@ export class BillCalculatorUI {
   removeItem(itemId: string): void {
     if (!this.currentBillId) return;
 
-    if (confirm('Are you sure you want to remove this item?')) {
+    const bill = this.calculator.getBill(this.currentBillId);
+    const item = bill?.items.find(i => i.id === itemId);
+    
+    if (confirm(`Remove "${item?.name}" ($${item?.price.toFixed(2)}) from this bill?`)) {
       this.calculator.removeItem(this.currentBillId, itemId);
       this.updateItemsList();
       this.updateSummaryTable();
@@ -664,8 +689,15 @@ export class BillCalculatorUI {
               </th>
               ${bill.items.map(item => `
                 <th class="item-header">
-                  ${item.name}<br>
-                  <small style="font-weight: normal; color: #6c757d;">($${item.price.toFixed(2)})</small>
+                  <div class="item-header-content">
+                    <div class="item-name-price">
+                      ${item.name}<br>
+                      <small style="font-weight: normal; color: #6c757d;">($${item.price.toFixed(2)})</small>
+                    </div>
+                    <button class="item-delete-btn" onclick="billUI.removeItem('${item.id}')" title="Delete ${item.name}">
+                      Delete
+                    </button>
+                  </div>
                 </th>
               `).join('')}
               <th class="total-column">Total</th>
@@ -723,10 +755,10 @@ export class BillCalculatorUI {
       if (e.key === 'Escape' && document.getElementById('personInputModal')!.style.display === 'block') {
         this.closePersonModal();
       }
-      if (e.key === 'Enter' && document.getElementById('personInputModal')!.style.display === 'block') {
+      if (e.key === 'Enter' && document.getElementById('itemInputModal')!.style.display === 'block') {
         this.addItemFromModal();
       }
-      if (e.key === 'Escape' && document.getElementById('personInputModal')!.style.display === 'block') {
+      if (e.key === 'Escape' && document.getElementById('itemInputModal')!.style.display === 'block') {
         this.closeItemModal();
       }
     });
