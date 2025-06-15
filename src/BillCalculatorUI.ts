@@ -4,16 +4,28 @@ import { Bill, PersonSummary } from './types';
 export class BillCalculatorUI {
   private calculator: BillCalculator;
   private currentBillId: string | null = null;
+  private isDarkTheme: boolean;
 
   constructor() {
     this.calculator = new BillCalculator();
+    // Load theme preference from localStorage
+    this.isDarkTheme = localStorage.getItem('billCalculatorTheme') === 'dark' || 
+                      (localStorage.getItem('billCalculatorTheme') === null && 
+                       window.matchMedia('(prefers-color-scheme: dark)').matches);
     this.initializeUI();
+    this.applyTheme();
   }
 
   private initializeUI(): void {
     document.body.innerHTML = `
       <div class="container">
-        <h1>Bill Calculator</h1>
+        <div class="app-header">
+          <h1>Bill Calculator</h1>
+          <button id="themeToggle" class="theme-toggle" onclick="billUI.toggleTheme()">
+            <span class="theme-icon">🌙</span>
+            <span class="theme-text">Dark</span>
+          </button>
+        </div>
         
         <!-- Bill Management -->
         <div class="section">
@@ -46,7 +58,7 @@ export class BillCalculatorUI {
                   </button>
                 </div>
               </div>
-              <p style="color: #6c757d; font-size: 14px; margin-bottom: 15px;">
+              <p class="instructions-text">
                 <strong>Instructions:</strong> Use "Add Person" and "Add Item" buttons to manage your bill. Check boxes to include a person in splitting an item's cost. 
                 Use "Delete" buttons to remove people or items.
               </p>
@@ -57,22 +69,22 @@ export class BillCalculatorUI {
       </div>
 
       <!-- Hidden input for adding person -->
-      <div id="personInputModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
-        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+      <div id="personInputModal" class="modal-overlay">
+        <div class="modal-content">
           <h4>Add New Person</h4>
           <div class="form-group">
             <input type="text" id="modalPersonName" placeholder="Enter person name" style="width: 200px;">
           </div>
           <div style="margin-top: 15px;">
             <button onclick="billUI.addPersonFromModal()" style="margin-right: 10px;">Add Person</button>
-            <button onclick="billUI.closePersonModal()" style="background-color: #6c757d;">Cancel</button>
+            <button onclick="billUI.closePersonModal()" class="secondary-btn">Cancel</button>
           </div>
         </div>
       </div>
 
       <!-- Hidden input for adding item -->
-      <div id="itemInputModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
-        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); min-width: 300px;">
+      <div id="itemInputModal" class="modal-overlay">
+        <div class="modal-content">
           <h4>Add New Item</h4>
           <div class="form-group">
             <input type="text" id="modalItemName" placeholder="Enter item name" style="width: 100%; margin-bottom: 10px;">
@@ -80,19 +92,184 @@ export class BillCalculatorUI {
           </div>
           <div style="margin-top: 15px;">
             <button onclick="billUI.addItemFromModal()" style="margin-right: 10px;">Add Item</button>
-            <button onclick="billUI.closeItemModal()" style="background-color: #6c757d;">Cancel</button>
+            <button onclick="billUI.closeItemModal()" class="secondary-btn">Cancel</button>
           </div>
         </div>
       </div>
 
       <style>
-        .container { max-width: 1200px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif; }
-        .section { margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
-        .subsection { margin-bottom: 20px; padding: 15px; background-color: #f9f9f9; border-radius: 5px; }
+        :root {
+          /* Light theme colors */
+          --bg-primary: #ffffff;
+          --bg-secondary: #f8f9fa;
+          --bg-tertiary: #e9ecef;
+          --text-primary: #212529;
+          --text-secondary: #6c757d;
+          --text-tertiary: #495057;
+          --border-color: #dee2e6;
+          --border-light: #e9ecef;
+          --shadow: rgba(0, 0, 0, 0.1);
+          
+          /* Table colors - Light theme with better contrast */
+          --table-bg: #ffffff;
+          --table-header-bg: #343a40;
+          --table-header-text: #ffffff;
+          --table-row-odd: #f8f9fa;
+          --table-row-even: #e9ecef;
+          --table-row-hover: #dee2e6;
+          --table-border: #495057;
+          --table-person-bg: #6c757d;
+          --table-person-text: #ffffff;
+          --table-total-bg: #28a745;
+          --table-total-text: #ffffff;
+          
+          /* Button colors */
+          --btn-primary: #007bff;
+          --btn-primary-hover: #0056b3;
+          --btn-success: #28a745;
+          --btn-success-hover: #218838;
+          --btn-danger: #dc3545;
+          --btn-danger-hover: #c82333;
+          --btn-secondary: #6c757d;
+          --btn-secondary-hover: #5a6268;
+        }
+
+        [data-theme="dark"] {
+          /* Dark theme colors */
+          --bg-primary: #1a1a1a;
+          --bg-secondary: #2d2d2d;
+          --bg-tertiary: #404040;
+          --text-primary: #ffffff;
+          --text-secondary: #cccccc;
+          --text-tertiary: #aaaaaa;
+          --border-color: #404040;
+          --border-light: #555555;
+          --shadow: rgba(0, 0, 0, 0.3);
+          
+          /* Table colors - Dark theme */
+          --table-bg: #1f2937;
+          --table-header-bg: #111827;
+          --table-header-text: #f3f4f6;
+          --table-row-odd: #374151;
+          --table-row-even: #4b5563;
+          --table-row-hover: #6b7280;
+          --table-border: #374151;
+          --table-person-bg: #374151;
+          --table-person-text: #f9fafb;
+          --table-total-bg: #059669;
+          --table-total-text: #f0fff4;
+          
+          /* Button colors - keep same for consistency */
+          --btn-primary: #007bff;
+          --btn-primary-hover: #0056b3;
+          --btn-success: #28a745;
+          --btn-success-hover: #218838;
+          --btn-danger: #ef4444;
+          --btn-danger-hover: #dc2626;
+          --btn-secondary: #6c757d;
+          --btn-secondary-hover: #5a6268;
+        }
+
+        body {
+          background-color: var(--bg-primary);
+          color: var(--text-primary);
+          transition: background-color 0.3s ease, color 0.3s ease;
+          margin: 0;
+          font-family: Arial, sans-serif;
+        }
+
+        .container { 
+          max-width: 1200px; 
+          margin: 0 auto; 
+          padding: 20px; 
+        }
+
+        .app-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 30px;
+          padding-bottom: 20px;
+          border-bottom: 2px solid var(--border-color);
+        }
+
+        .app-header h1 {
+          margin: 0;
+          color: var(--text-primary);
+        }
+
+        .theme-toggle {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 16px;
+          background-color: var(--bg-tertiary);
+          color: var(--text-primary);
+          border: 2px solid var(--border-color);
+          border-radius: 25px;
+          cursor: pointer;
+          font-size: 14px;
+          font-weight: 500;
+          transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+          background-color: var(--border-color);
+          transform: translateY(-1px);
+        }
+
+        .theme-icon {
+          font-size: 16px;
+          transition: transform 0.3s ease;
+        }
+
+        .section { 
+          margin-bottom: 30px; 
+          padding: 20px; 
+          background-color: var(--bg-secondary);
+          border: 1px solid var(--border-color); 
+          border-radius: 8px; 
+        }
+
+        .subsection { 
+          margin-bottom: 20px; 
+          padding: 15px; 
+          background-color: var(--bg-tertiary); 
+          border-radius: 5px; 
+        }
+
         .form-group { margin-bottom: 10px; }
-        .form-group input { margin-right: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-        .form-group button { padding: 8px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        .form-group button:hover { background-color: #0056b3; }
+        .form-group input { 
+          margin-right: 10px; 
+          padding: 8px; 
+          border: 1px solid var(--border-color); 
+          border-radius: 4px; 
+          background-color: var(--bg-primary);
+          color: var(--text-primary);
+        }
+        .form-group button { 
+          padding: 8px 15px; 
+          background-color: var(--btn-primary); 
+          color: white; 
+          border: none; 
+          border-radius: 4px; 
+          cursor: pointer; 
+        }
+        .form-group button:hover { background-color: var(--btn-primary-hover); }
+
+        .instructions-text {
+          color: var(--text-secondary);
+          font-size: 14px;
+          margin-bottom: 15px;
+        }
+
+        .secondary-btn {
+          background-color: var(--btn-secondary) !important;
+        }
+
+        .secondary-btn:hover {
+          background-color: var(--btn-secondary-hover) !important;
+        }
         
         /* Bills List - Horizontal Layout */
         #billsList {
@@ -106,7 +283,7 @@ export class BillCalculatorUI {
           min-width: 280px;
           max-width: 350px;
           padding: 15px; 
-          background-color: #e9ecef; 
+          background-color: var(--bg-tertiary); 
           border-radius: 8px; 
           cursor: pointer; 
           display: flex; 
@@ -117,12 +294,12 @@ export class BillCalculatorUI {
         }
         .bill-item:hover {
           transform: translateY(-2px);
-          box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+          box-shadow: 0 4px 8px var(--shadow);
         }
         .bill-item.active { 
-          background-color: #007bff; 
+          background-color: var(--btn-primary); 
           color: white; 
-          border-color: #0056b3;
+          border-color: var(--btn-primary-hover);
         }
         .bill-item-content { 
           flex-grow: 1; 
@@ -150,7 +327,7 @@ export class BillCalculatorUI {
           margin-bottom: 20px; 
         }
         .delete-bill-btn { 
-          background-color: #dc3545; 
+          background-color: var(--btn-danger); 
           color: white; 
           border: none; 
           padding: 10px 20px; 
@@ -158,7 +335,7 @@ export class BillCalculatorUI {
           cursor: pointer; 
           font-size: 14px;
         }
-        .delete-bill-btn:hover { background-color: #c82333; }
+        .delete-bill-btn:hover { background-color: var(--btn-danger-hover); }
         
         /* Summary header with action buttons */
         .summary-header {
@@ -172,7 +349,7 @@ export class BillCalculatorUI {
           gap: 10px;
         }
         .add-person-btn-external {
-          background-color: #28a745;
+          background-color: var(--btn-success);
           color: white;
           border: none;
           padding: 8px 16px;
@@ -181,9 +358,9 @@ export class BillCalculatorUI {
           font-size: 14px;
           font-weight: normal;
         }
-        .add-person-btn-external:hover { background-color: #218838; }
+        .add-person-btn-external:hover { background-color: var(--btn-success-hover); }
         .add-item-btn-external {
-          background-color: #007bff;
+          background-color: var(--btn-primary);
           color: white;
           border: none;
           padding: 8px 16px;
@@ -192,21 +369,58 @@ export class BillCalculatorUI {
           font-size: 14px;
           font-weight: normal;
         }
-        .add-item-btn-external:hover { background-color: #0056b3; }
+        .add-item-btn-external:hover { background-color: var(--btn-primary-hover); }
         
-        /* Dark Table with Striped Columns - Material Tailwind Style */
+        /* Modal Styles */
+        .modal-overlay {
+          display: none;
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0,0,0,0.5);
+          z-index: 1000;
+        }
+
+        .modal-content {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background: var(--bg-primary);
+          color: var(--text-primary);
+          padding: 20px;
+          border-radius: 8px;
+          box-shadow: 0 4px 6px var(--shadow);
+          border: 1px solid var(--border-color);
+          min-width: 300px;
+        }
+
+        .modal-content h4 {
+          margin-top: 0;
+          color: var(--text-primary);
+        }
+
+        .modal-content input {
+          background-color: var(--bg-secondary);
+          color: var(--text-primary);
+          border: 1px solid var(--border-color);
+        }
+        
+        /* Table Styles - Using CSS Variables */
         .summary-table-container {
           overflow-x: auto;
           margin-top: 15px;
           border-radius: 12px;
-          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+          box-shadow: 0 10px 15px -3px var(--shadow);
         }
         
         table { 
           width: 100%; 
           border-collapse: collapse; 
-          background-color: #1f2937;
-          color: #f9fafb;
+          background-color: var(--table-bg);
+          color: var(--table-person-text);
           border-radius: 12px;
           overflow: hidden;
         }
@@ -222,35 +436,35 @@ export class BillCalculatorUI {
         }
         
         th { 
-          background-color: #111827;
-          color: #f3f4f6;
+          background-color: var(--table-header-bg);
+          color: var(--table-header-text);
           font-weight: 600; 
           font-size: 13px;
           text-transform: uppercase;
           letter-spacing: 0.05em;
           white-space: nowrap;
-          border-bottom: 1px solid #374151;
+          border-bottom: 1px solid var(--table-border);
         }
         
         /* Striped Columns Effect */
         td:nth-child(odd) {
-          background-color: #374151;
+          background-color: var(--table-row-odd);
         }
         
         td:nth-child(even) {
-          background-color: #4b5563;
+          background-color: var(--table-row-even);
         }
         
         /* Hover effects */
         tbody tr:hover td {
-          background-color: #6b7280 !important;
+          background-color: var(--table-row-hover) !important;
           transform: scale(1.01);
         }
         
         /* Person column styles */
         .person-header {
-          background-color: #111827 !important;
-          color: #f3f4f6 !important;
+          background-color: var(--table-header-bg) !important;
+          color: var(--table-header-text) !important;
           font-weight: 600;
           min-width: 180px;
           width: 100%;
@@ -266,8 +480,8 @@ export class BillCalculatorUI {
         
         /* Person row cell - Full expansion */
         .person-row-cell {
-          background-color: #374151 !important;
-          color: #f9fafb !important;
+          background-color: var(--table-person-bg) !important;
+          color: var(--table-person-text) !important;
           font-weight: 500;
           min-width: 180px;
           width: 100%;
@@ -280,7 +494,6 @@ export class BillCalculatorUI {
           border: none;
           margin: 0;
           box-sizing: border-box;
-          /* Ensure full cell coverage */
           position: absolute;
           top: 0;
           left: 0;
@@ -288,19 +501,19 @@ export class BillCalculatorUI {
           bottom: 0;
         }
         
-        /* Parent td for person row - Remove padding and set relative positioning */
+        /* Parent td for person row */
         .person-cell {
           padding: 0 !important;
           position: relative;
           min-width: 180px;
-          background-color: #374151 !important;
+          background-color: var(--table-person-bg) !important;
         }
         
         .person-name-column { 
           text-align: left !important; 
           font-weight: 600; 
-          background-color: #374151 !important;
-          color: #f9fafb !important;
+          background-color: var(--table-person-bg) !important;
+          color: var(--table-person-text) !important;
           min-width: 180px;
           padding: 0 !important;
           position: relative;
@@ -308,8 +521,8 @@ export class BillCalculatorUI {
         
         /* Item column styles */
         .item-header {
-          background-color: #111827 !important;
-          color: #f3f4f6 !important;
+          background-color: var(--table-header-bg) !important;
+          color: var(--table-header-text) !important;
           font-weight: 600;
           min-width: 120px;
           padding: 12px 8px;
@@ -326,11 +539,11 @@ export class BillCalculatorUI {
         .item-name-price {
           text-align: center;
           line-height: 1.3;
-          color: #f3f4f6;
+          color: var(--table-header-text);
         }
         
         .item-delete-btn {
-          background-color: #ef4444;
+          background-color: var(--btn-danger);
           color: white;
           border: none;
           padding: 4px 8px;
@@ -341,14 +554,14 @@ export class BillCalculatorUI {
           transition: background-color 0.2s ease;
         }
         .item-delete-btn:hover { 
-          background-color: #dc2626; 
+          background-color: var(--btn-danger-hover); 
           transform: scale(1.05);
         }
         
         /* Total column styles */
         .total-column {
-          background-color: #059669 !important;
-          color: #f0fff4 !important;
+          background-color: var(--table-total-bg) !important;
+          color: var(--table-total-text) !important;
           font-weight: 700;
           min-width: 100px;
           padding: 16px;
@@ -356,12 +569,12 @@ export class BillCalculatorUI {
         
         .total-row { 
           font-weight: 700; 
-          background-color: #059669 !important;
+          background-color: var(--table-total-bg) !important;
         }
         
         .total-row td {
-          background-color: #059669 !important;
-          color: #f0fff4 !important;
+          background-color: var(--table-total-bg) !important;
+          color: var(--table-total-text) !important;
           padding: 16px;
           font-weight: 600;
         }
@@ -375,7 +588,7 @@ export class BillCalculatorUI {
         .divider-checkbox {
           transform: scale(1.3);
           cursor: pointer;
-          accent-color: #10b981;
+          accent-color: var(--btn-success);
           margin-bottom: 8px;
         }
         
@@ -388,11 +601,11 @@ export class BillCalculatorUI {
         
         .person-name {
           flex-grow: 1;
-          color: #f9fafb;
+          color: var(--table-person-text);
         }
         
         .person-delete-btn {
-          background-color: #ef4444;
+          background-color: var(--btn-danger);
           color: white;
           border: none;
           padding: 6px 10px;
@@ -405,12 +618,12 @@ export class BillCalculatorUI {
           transition: all 0.2s ease;
         }
         .person-delete-btn:hover { 
-          background-color: #dc2626; 
+          background-color: var(--btn-danger-hover); 
           transform: scale(1.05);
         }
         
         .add-person-btn {
-          background-color: #10b981;
+          background-color: var(--btn-success);
           color: white;
           border: none;
           padding: 6px 10px;
@@ -422,35 +635,35 @@ export class BillCalculatorUI {
           transition: all 0.2s ease;
         }
         .add-person-btn:hover { 
-          background-color: #059669; 
+          background-color: var(--btn-success-hover); 
           transform: scale(1.05);
         }
         
         .empty-cell {
-          background-color: #4b5563;
-          color: #9ca3af;
+          background-color: var(--table-row-even);
+          color: var(--text-secondary);
           font-style: italic;
         }
         
         .amount-cell {
           font-weight: 600;
-          background-color: #10b981;
-          color: #f0fff4;
+          background-color: var(--btn-success);
+          color: white;
         }
         
         .item-info {
           display: inline-block;
           margin: 5px;
           padding: 6px 12px;
-          background-color: #4b5563;
-          color: #f3f4f6;
+          background-color: var(--bg-tertiary);
+          color: var(--text-primary);
           border-radius: 6px;
           font-size: 12px;
           font-weight: 500;
         }
         
         .remove-btn { 
-          background-color: #ef4444; 
+          background-color: var(--btn-danger); 
           color: white; 
           border: none; 
           padding: 4px 10px; 
@@ -462,12 +675,12 @@ export class BillCalculatorUI {
           transition: all 0.2s ease;
         }
         .remove-btn:hover { 
-          background-color: #dc2626; 
+          background-color: var(--btn-danger-hover); 
           transform: scale(1.05);
         }
         
         .bill-delete-btn { 
-          background-color: #dc3545; 
+          background-color: var(--btn-danger); 
           color: white; 
           border: none; 
           padding: 5px 10px; 
@@ -475,12 +688,12 @@ export class BillCalculatorUI {
           cursor: pointer; 
           font-size: 12px;
         }
-        .bill-delete-btn:hover { background-color: #c82333; }
+        .bill-delete-btn:hover { background-color: var(--btn-danger-hover); }
         
         .empty-state { 
           text-align: center; 
           padding: 40px; 
-          color: #6c757d; 
+          color: var(--text-secondary); 
           font-style: italic; 
           flex: 1 1 100%;
         }
@@ -488,11 +701,11 @@ export class BillCalculatorUI {
         .no-data-message {
           text-align: center;
           padding: 30px;
-          color: #6c757d;
+          color: var(--text-secondary);
           font-style: italic;
-          background-color: #f8f9fa;
+          background-color: var(--bg-secondary);
           border-radius: 8px;
-          border: 2px dashed #dee2e6;
+          border: 2px dashed var(--border-color);
         }
         
         .list-container {
@@ -502,27 +715,33 @@ export class BillCalculatorUI {
         .empty-persons-message {
           text-align: center;
           padding: 40px 20px;
-          color: #6c757d;
+          color: var(--text-secondary);
           font-style: italic;
-          border: 2px dashed #ddd;
+          border: 2px dashed var(--border-color);
           border-radius: 8px;
           margin: 20px 0;
-          background-color: #f8f9fa;
+          background-color: var(--bg-secondary);
         }
         
         .empty-items-message {
           text-align: center;
           padding: 40px 20px;
-          color: #6c757d;
+          color: var(--text-secondary);
           font-style: italic;
-          border: 2px dashed #ddd;
+          border: 2px dashed var(--border-color);
           border-radius: 8px;
           margin: 20px 0;
-          background-color: #f8f9fa;
+          background-color: var(--bg-secondary);
         }
         
         /* Responsive design for smaller screens */
         @media (max-width: 768px) {
+          .app-header {
+            flex-direction: column;
+            gap: 15px;
+            text-align: center;
+          }
+
           #billsList {
             flex-direction: column;
           }
@@ -551,6 +770,29 @@ export class BillCalculatorUI {
     // Make this instance globally available
     (window as any).billUI = this;
     this.updateBillsList();
+  }
+
+  toggleTheme(): void {
+    this.isDarkTheme = !this.isDarkTheme;
+    localStorage.setItem('billCalculatorTheme', this.isDarkTheme ? 'dark' : 'light');
+    this.applyTheme();
+  }
+
+  private applyTheme(): void {
+    const body = document.body;
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.querySelector('.theme-icon');
+    const themeText = document.querySelector('.theme-text');
+
+    if (this.isDarkTheme) {
+      body.setAttribute('data-theme', 'dark');
+      if (themeIcon) themeIcon.textContent = '☀️';
+      if (themeText) themeText.textContent = 'Light';
+    } else {
+      body.removeAttribute('data-theme');
+      if (themeIcon) themeIcon.textContent = '🌙';
+      if (themeText) themeText.textContent = 'Dark';
+    }
   }
 
   createNewBill(): void {
@@ -714,7 +956,7 @@ export class BillCalculatorUI {
         <div class="bill-item ${bill.id === this.currentBillId ? 'active' : ''}">
           <div class="bill-item-content" onclick="billUI.selectBill('${bill.id}')">
             <div class="bill-item-title">${bill.name}</div>
-            <div class="bill-item-stats" style="color: ${bill.id === this.currentBillId ? '#ffffff' : '#6c757d'};">
+            <div class="bill-item-stats" style="color: ${bill.id === this.currentBillId ? '#ffffff' : 'var(--text-secondary)'};">
               👥 ${bill.persons.length} person(s)<br>
               🧾 ${bill.items.length} item(s)<br>
               💰 Total: $${totalAmount.toFixed(2)}
@@ -764,7 +1006,7 @@ export class BillCalculatorUI {
         <div class="empty-persons-message">
           <h4>No persons added yet</h4>
           <p>Add people to split the bill costs</p>
-          <p style="color: #28a745; font-weight: bold;">↗ Use the "Add Person" button above</p>
+          <p style="color: var(--btn-success); font-weight: bold;">↗ Use the "Add Person" button above</p>
         </div>
       `;
       return;
@@ -818,7 +1060,7 @@ export class BillCalculatorUI {
                   <div class="item-header-content">
                     <div class="item-name-price">
                       ${item.name}<br>
-                      <small style="font-weight: normal; color: #9ca3af;">($${item.price.toFixed(2)})</small>
+                      <small style="font-weight: normal; color: var(--text-secondary);">($${item.price.toFixed(2)})</small>
                     </div>
                     <button class="item-delete-btn" onclick="billUI.removeItem('${item.id}')" title="Delete ${item.name}">
                       Delete
@@ -851,7 +1093,7 @@ export class BillCalculatorUI {
                              ${isChecked ? 'checked' : ''} 
                              onchange="billUI.toggleDividerFromTable('${item.id}', '${person.id}')"
                              id="checkbox_${person.id}_${item.id}">
-                      <small style="color: ${amount > 0 ? '#10b981' : '#9ca3af'}; font-weight: ${amount > 0 ? '600' : 'normal'};">
+                      <small style="color: ${amount > 0 ? 'var(--btn-success)' : 'var(--text-secondary)'}; font-weight: ${amount > 0 ? '600' : 'normal'};">
                         ${amount > 0 ? `$${amount.toFixed(2)}` : '-'}
                       </small>
                     </td>
@@ -862,8 +1104,8 @@ export class BillCalculatorUI {
             `).join('')}
             <tr class="total-row">
               <td class="person-cell">
-                <div class="person-row-cell" style="background-color: #059669 !important;">
-                  <span class="person-name" style="color: #f0fff4;">Total</span>
+                <div class="person-row-cell" style="background-color: var(--table-total-bg) !important;">
+                  <span class="person-name" style="color: var(--table-total-text);">Total</span>
                 </div>
               </td>
               ${bill.items.map(item => `
