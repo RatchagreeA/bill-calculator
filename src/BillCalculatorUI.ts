@@ -194,36 +194,68 @@ export class BillCalculatorUI {
         }
         .add-item-btn-external:hover { background-color: #0056b3; }
         
-        /* Table Styles - Fixed borders and connections */
+        /* Dark Table with Striped Columns - Material Tailwind Style */
+        .summary-table-container {
+          overflow-x: auto;
+          margin-top: 15px;
+          border-radius: 12px;
+          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
         table { 
           width: 100%; 
           border-collapse: collapse; 
-          margin-top: 10px; 
-          border: 1px solid #ddd;
+          background-color: #1f2937;
+          color: #f9fafb;
+          border-radius: 12px;
+          overflow: hidden;
         }
+        
         th, td { 
-          padding: 0; 
+          padding: 16px 12px;
           text-align: center; 
-          border: 1px solid #ddd; 
+          border: none;
           font-size: 14px;
           vertical-align: middle;
           box-sizing: border-box;
-        }
-        th { 
-          background-color: #f8f9fa; 
-          font-weight: bold; 
-          white-space: nowrap;
-          border: 1px solid #ddd;
+          transition: all 0.2s ease;
         }
         
-        /* Person column styles - Full cell expansion */
+        th { 
+          background-color: #111827;
+          color: #f3f4f6;
+          font-weight: 600; 
+          font-size: 13px;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          white-space: nowrap;
+          border-bottom: 1px solid #374151;
+        }
+        
+        /* Striped Columns Effect */
+        td:nth-child(odd) {
+          background-color: #374151;
+        }
+        
+        td:nth-child(even) {
+          background-color: #4b5563;
+        }
+        
+        /* Hover effects */
+        tbody tr:hover td {
+          background-color: #6b7280 !important;
+          transform: scale(1.01);
+        }
+        
+        /* Person column styles */
         .person-header {
-          background-color: #f8f9fa !important;
-          font-weight: bold;
+          background-color: #111827 !important;
+          color: #f3f4f6 !important;
+          font-weight: 600;
           min-width: 180px;
           width: 100%;
           height: 100%;
-          padding: 12px;
+          padding: 16px;
           display: flex;
           align-items: center;
           text-align: left;
@@ -231,13 +263,16 @@ export class BillCalculatorUI {
           margin: 0;
           box-sizing: border-box;
         }
+        
+        /* Person row cell - Full expansion */
         .person-row-cell {
-          background-color: #f8f9fa !important;
-          font-weight: bold;
+          background-color: #374151 !important;
+          color: #f9fafb !important;
+          font-weight: 500;
           min-width: 180px;
           width: 100%;
           height: 100%;
-          padding: 12px;
+          padding: 16px;
           display: flex;
           justify-content: space-between;
           align-items: center;
@@ -245,131 +280,192 @@ export class BillCalculatorUI {
           border: none;
           margin: 0;
           box-sizing: border-box;
+          /* Ensure full cell coverage */
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
         }
+        
+        /* Parent td for person row - Remove padding and set relative positioning */
+        .person-cell {
+          padding: 0 !important;
+          position: relative;
+          min-width: 180px;
+          background-color: #374151 !important;
+        }
+        
         .person-name-column { 
           text-align: left !important; 
-          font-weight: bold; 
-          background-color: #f8f9fa !important;
+          font-weight: 600; 
+          background-color: #374151 !important;
+          color: #f9fafb !important;
           min-width: 180px;
-          border: 1px solid #ddd;
-          padding: 12px;
+          padding: 0 !important;
+          position: relative;
         }
         
         /* Item column styles */
         .item-header {
-          background-color: #f8f9fa !important;
-          font-weight: bold;
+          background-color: #111827 !important;
+          color: #f3f4f6 !important;
+          font-weight: 600;
           min-width: 120px;
-          border: 1px solid #ddd;
-          padding: 8px;
+          padding: 12px 8px;
           text-align: center;
         }
+        
         .item-header-content {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 5px;
+          gap: 8px;
         }
+        
         .item-name-price {
           text-align: center;
-          line-height: 1.2;
+          line-height: 1.3;
+          color: #f3f4f6;
         }
+        
         .item-delete-btn {
-          background-color: #dc3545;
+          background-color: #ef4444;
           color: white;
           border: none;
-          padding: 2px 6px;
-          border-radius: 3px;
+          padding: 4px 8px;
+          border-radius: 6px;
           cursor: pointer;
           font-size: 10px;
-          font-weight: normal;
+          font-weight: 500;
+          transition: background-color 0.2s ease;
         }
-        .item-delete-btn:hover { background-color: #c82333; }
+        .item-delete-btn:hover { 
+          background-color: #dc2626; 
+          transform: scale(1.05);
+        }
         
         /* Total column styles */
         .total-column {
-          background-color: #e9ecef !important;
-          font-weight: bold;
+          background-color: #059669 !important;
+          color: #f0fff4 !important;
+          font-weight: 700;
           min-width: 100px;
-          border: 1px solid #ddd;
-          padding: 12px;
+          padding: 16px;
         }
+        
         .total-row { 
-          font-weight: bold; 
-          background-color: #e9ecef !important;
+          font-weight: 700; 
+          background-color: #059669 !important;
         }
+        
         .total-row td {
-          background-color: #e9ecef !important;
-          border: 1px solid #ddd;
-          padding: 12px;
+          background-color: #059669 !important;
+          color: #f0fff4 !important;
+          padding: 16px;
+          font-weight: 600;
         }
         
         /* Checkbox cell styles */
         .checkbox-cell {
-          background-color: #fff !important;
-          padding: 12px;
-          border: 1px solid #ddd;
+          padding: 16px;
+          position: relative;
+        }
+        
+        .divider-checkbox {
+          transform: scale(1.3);
+          cursor: pointer;
+          accent-color: #10b981;
+          margin-bottom: 8px;
+        }
+        
+        .checkbox-cell small {
+          display: block;
+          font-size: 11px;
+          font-weight: 500;
+          margin-top: 4px;
         }
         
         .person-name {
           flex-grow: 1;
+          color: #f9fafb;
         }
+        
         .person-delete-btn {
-          background-color: #dc3545;
+          background-color: #ef4444;
           color: white;
           border: none;
-          padding: 4px 8px;
-          border-radius: 3px;
+          padding: 6px 10px;
+          border-radius: 6px;
           cursor: pointer;
           font-size: 11px;
-          margin-left: 10px;
+          margin-left: 12px;
           flex-shrink: 0;
+          font-weight: 500;
+          transition: all 0.2s ease;
         }
-        .person-delete-btn:hover { background-color: #c82333; }
+        .person-delete-btn:hover { 
+          background-color: #dc2626; 
+          transform: scale(1.05);
+        }
+        
         .add-person-btn {
-          background-color: #28a745;
+          background-color: #10b981;
           color: white;
           border: none;
-          padding: 4px 8px;
-          border-radius: 3px;
+          padding: 6px 10px;
+          border-radius: 6px;
           cursor: pointer;
           font-size: 10px;
-          font-weight: normal;
+          font-weight: 500;
           flex-shrink: 0;
+          transition: all 0.2s ease;
         }
-        .add-person-btn:hover { background-color: #218838; }
+        .add-person-btn:hover { 
+          background-color: #059669; 
+          transform: scale(1.05);
+        }
+        
         .empty-cell {
-          background-color: #f8f9fa;
-          color: #6c757d;
+          background-color: #4b5563;
+          color: #9ca3af;
           font-style: italic;
         }
+        
         .amount-cell {
-          font-weight: 500;
-          background-color: #e8f5e8;
+          font-weight: 600;
+          background-color: #10b981;
+          color: #f0fff4;
         }
-        .divider-checkbox {
-          transform: scale(1.2);
-          cursor: pointer;
-        }
+        
         .item-info {
           display: inline-block;
           margin: 5px;
-          padding: 5px 10px;
-          background-color: #e9ecef;
-          border-radius: 3px;
+          padding: 6px 12px;
+          background-color: #4b5563;
+          color: #f3f4f6;
+          border-radius: 6px;
           font-size: 12px;
+          font-weight: 500;
         }
+        
         .remove-btn { 
-          background-color: #dc3545; 
+          background-color: #ef4444; 
           color: white; 
           border: none; 
-          padding: 3px 8px; 
-          border-radius: 3px; 
+          padding: 4px 10px; 
+          border-radius: 6px; 
           cursor: pointer; 
           margin-left: 8px;
           font-size: 11px;
+          font-weight: 500;
+          transition: all 0.2s ease;
         }
-        .remove-btn:hover { background-color: #c82333; }
+        .remove-btn:hover { 
+          background-color: #dc2626; 
+          transform: scale(1.05);
+        }
+        
         .bill-delete-btn { 
           background-color: #dc3545; 
           color: white; 
@@ -380,6 +476,7 @@ export class BillCalculatorUI {
           font-size: 12px;
         }
         .bill-delete-btn:hover { background-color: #c82333; }
+        
         .empty-state { 
           text-align: center; 
           padding: 40px; 
@@ -387,19 +484,21 @@ export class BillCalculatorUI {
           font-style: italic; 
           flex: 1 1 100%;
         }
-        .summary-table-container {
-          overflow-x: auto;
-          margin-top: 15px;
-        }
+        
         .no-data-message {
           text-align: center;
-          padding: 20px;
+          padding: 30px;
           color: #6c757d;
           font-style: italic;
+          background-color: #f8f9fa;
+          border-radius: 8px;
+          border: 2px dashed #dee2e6;
         }
+        
         .list-container {
           margin-top: 10px;
         }
+        
         .empty-persons-message {
           text-align: center;
           padding: 40px 20px;
@@ -408,7 +507,9 @@ export class BillCalculatorUI {
           border: 2px dashed #ddd;
           border-radius: 8px;
           margin: 20px 0;
+          background-color: #f8f9fa;
         }
+        
         .empty-items-message {
           text-align: center;
           padding: 40px 20px;
@@ -417,6 +518,7 @@ export class BillCalculatorUI {
           border: 2px dashed #ddd;
           border-radius: 8px;
           margin: 20px 0;
+          background-color: #f8f9fa;
         }
         
         /* Responsive design for smaller screens */
@@ -426,6 +528,21 @@ export class BillCalculatorUI {
           }
           .bill-item {
             max-width: none;
+          }
+          
+          th, td {
+            padding: 12px 8px;
+            font-size: 13px;
+          }
+          
+          .person-header, .person-row-cell {
+            min-width: 140px;
+            padding: 12px;
+          }
+          
+          .item-header {
+            min-width: 100px;
+            padding: 8px 6px;
           }
         }
       </style>
@@ -701,7 +818,7 @@ export class BillCalculatorUI {
                   <div class="item-header-content">
                     <div class="item-name-price">
                       ${item.name}<br>
-                      <small style="font-weight: normal; color: #6c757d;">($${item.price.toFixed(2)})</small>
+                      <small style="font-weight: normal; color: #9ca3af;">($${item.price.toFixed(2)})</small>
                     </div>
                     <button class="item-delete-btn" onclick="billUI.removeItem('${item.id}')" title="Delete ${item.name}">
                       Delete
@@ -715,7 +832,7 @@ export class BillCalculatorUI {
           <tbody>
             ${bill.persons.map(person => `
               <tr>
-                <td style="padding: 0;">
+                <td class="person-cell">
                   <div class="person-row-cell">
                     <span class="person-name">${person.name}</span>
                     <button class="person-delete-btn" onclick="billUI.removePerson('${person.id}')">
@@ -734,8 +851,7 @@ export class BillCalculatorUI {
                              ${isChecked ? 'checked' : ''} 
                              onchange="billUI.toggleDividerFromTable('${item.id}', '${person.id}')"
                              id="checkbox_${person.id}_${item.id}">
-                      <br>
-                      <small style="color: ${amount > 0 ? '#28a745' : '#6c757d'}; font-weight: ${amount > 0 ? 'bold' : 'normal'};">
+                      <small style="color: ${amount > 0 ? '#10b981' : '#9ca3af'}; font-weight: ${amount > 0 ? '600' : 'normal'};">
                         ${amount > 0 ? `$${amount.toFixed(2)}` : '-'}
                       </small>
                     </td>
@@ -745,7 +861,11 @@ export class BillCalculatorUI {
               </tr>
             `).join('')}
             <tr class="total-row">
-              <td class="person-name-column">Total</td>
+              <td class="person-cell">
+                <div class="person-row-cell" style="background-color: #059669 !important;">
+                  <span class="person-name" style="color: #f0fff4;">Total</span>
+                </div>
+              </td>
               ${bill.items.map(item => `
                 <td class="total-column">$${itemTotals[item.id].toFixed(2)}</td>
               `).join('')}
@@ -764,10 +884,8 @@ export class BillCalculatorUI {
       if (e.key === 'Enter' && document.getElementById('itemInputModal')!.style.display === 'block') {
         this.addItemFromModal();
       }
-      if (e.key === 'Escape' && document.getElementById('personInputModal')!.style.display === 'block') {
+      if (e.key === 'Escape') {
         this.closePersonModal();
-      }
-      if (e.key === 'Escape' && document.getElementById('itemInputModal')!.style.display === 'block') {
         this.closeItemModal();
       }
     });
