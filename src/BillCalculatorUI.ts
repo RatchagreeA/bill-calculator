@@ -56,6 +56,9 @@ export class BillCalculatorUI {
                   <button id="addItemBtn" class="add-item-btn-external" onclick="billUI.showItemModal()" style="display: none;">
                     + Add Item
                   </button>
+                  <button id="exportBtn" class="export-btn-external" onclick="billUI.exportTableToImage()" style="display: none;">
+                    📷 Export
+                  </button>
                 </div>
               </div>
               <p class="instructions-text">
@@ -371,6 +374,22 @@ export class BillCalculatorUI {
         }
         .add-item-btn-external:hover { background-color: var(--btn-primary-hover); }
         
+        .export-btn-external {
+          background-color: #6f42c1;
+          color: white;
+          border: none;
+          padding: 8px 16px;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 14px;
+          font-weight: normal;
+          transition: all 0.2s ease;
+        }
+        .export-btn-external:hover { 
+          background-color: #5a32a3; 
+          transform: translateY(-1px);
+        }
+
         /* Modal Styles */
         .modal-overlay {
           display: none;
@@ -979,15 +998,17 @@ export class BillCalculatorUI {
     const summaryTable = document.getElementById('summaryTable')!;
     const addPersonBtn = document.getElementById('addPersonBtn')!;
     const addItemBtn = document.getElementById('addItemBtn')!;
+    const exportBtn = document.getElementById('exportBtn')!;
     
     if (!bill) {
       summaryTable.innerHTML = '<div class="no-data-message">Bill not found.</div>';
       addPersonBtn.style.display = 'none';
       addItemBtn.style.display = 'none';
+      exportBtn.style.display = 'none';
       return;
     }
 
-    // Always show both buttons when bill is selected
+    // Always show all buttons when bill is selected
     addPersonBtn.style.display = 'inline-block';
     addItemBtn.style.display = 'inline-block';
 
@@ -997,6 +1018,7 @@ export class BillCalculatorUI {
           No items to split yet. Add items first to see the payment summary.
         </div>
       `;
+      exportBtn.style.display = 'none';
       return;
     }
 
@@ -1009,8 +1031,12 @@ export class BillCalculatorUI {
           <p style="color: var(--btn-success); font-weight: bold;">↗ Use the "Add Person" button above</p>
         </div>
       `;
+      exportBtn.style.display = 'none';
       return;
     }
+
+    // Show export button when table has data
+    exportBtn.style.display = 'inline-block';
 
     // Create matrix data structure
     const matrix: { [personId: string]: { [itemId: string]: number } } = {};
@@ -1132,4 +1158,355 @@ export class BillCalculatorUI {
       }
     });
   }
+
+    exportTableToImage(): void {
+    if (!this.currentBillId) return;
+
+    const bill = this.calculator.getBill(this.currentBillId);
+    if (!bill || bill.items.length === 0 || bill.persons.length === 0) {
+      alert('No data to export. Please add items and people first.');
+      return;
+    }
+
+    // Create a temporary container for export
+    const exportContainer = document.createElement('div');
+    exportContainer.style.position = 'absolute';
+    exportContainer.style.left = '-10000px';
+    exportContainer.style.top = '-10000px';
+    exportContainer.style.background = this.isDarkTheme ? '#1f2937' : '#ffffff';
+    exportContainer.style.padding = '20px';
+    exportContainer.style.fontFamily = 'Arial, sans-serif';
+    exportContainer.style.color = this.isDarkTheme ? '#f9fafb' : '#212529';
+
+    // Get current date for export
+    const currentDate = new Date().toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    // Create export content
+    exportContainer.innerHTML = `
+      <div style="margin-bottom: 20px; text-align: center;">
+        <h2 style="margin: 0 0 10px 0; color: ${this.isDarkTheme ? '#f3f4f6' : '#212529'};">Bill Calculator Export</h2>
+        <h3 style="margin: 0 0 5px 0; color: ${this.isDarkTheme ? '#f9fafb' : '#495057'};">${bill.name}</h3>
+        <p style="margin: 0; font-size: 14px; color: ${this.isDarkTheme ? '#cccccc' : '#6c757d'};">Generated on ${currentDate}</p>
+      </div>
+      ${document.querySelector('.summary-table-container')?.outerHTML || ''}
+    `;
+
+    document.body.appendChild(exportContainer);
+
+    // Use html2canvas alternative - create canvas manually
+    this.createTableImageCanvas(exportContainer, bill.name);
+
+    // Remove temporary container
+    document.body.removeChild(exportContainer);
+  }
+
+  private createTableImageCanvas(container: HTMLElement, billName: string): void {
+    // Create canvas
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Get bill data for calculations
+    const bill = this.calculator.getBill(this.currentBillId!);
+    if (!bill) return;
+
+    // Calculate dynamic canvas width based on content
+    const minPersonColWidth = 180;
+    const minItemColWidth = 100;
+    const minTotalColWidth = 100;
+    const padding = 40;
+    const borderWidth = 2;
+    
+    // Calculate optimal width
+    const minWidth = minPersonColWidth + (bill.items.length * minItemColWidth) + minTotalColWidth + padding;
+    const maxWidth = 1400; // Maximum reasonable width
+    const optimalWidth = Math.min(Math.max(minWidth, 800), maxWidth);
+
+    // Set canvas size
+    canvas.width = optimalWidth;
+    canvas.height = Math.max(600, 200 + (bill.persons.length + 2) * 45); // Dynamic height
+
+    // Calculate dynamic column widths
+    const availableWidth = canvas.width - padding;
+    const personColWidth = minPersonColWidth;
+    const totalColWidth = minTotalColWidth;
+    const availableForItems = availableWidth - personColWidth - totalColWidth;
+    const itemColWidth = Math.max(minItemColWidth, availableForItems / bill.items.length);
+
+    // Fill background
+    ctx.fillStyle = this.isDarkTheme ? '#1f2937' : '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Calculate matrix data
+    const matrix: { [personId: string]: { [itemId: string]: number } } = {};
+    const itemTotals: { [itemId: string]: number } = {};
+    const personTotals: { [personId: string]: number } = {};
+
+    bill.persons.forEach(person => {
+      matrix[person.id] = {};
+      personTotals[person.id] = 0;
+      bill.items.forEach(item => {
+        matrix[person.id][item.id] = 0;
+        if (!itemTotals[item.id]) {
+          itemTotals[item.id] = 0;
+        }
+      });
+    });
+
+    bill.items.forEach(item => {
+      if (item.dividers.length > 0) {
+        const splitAmount = item.price / item.dividers.length;
+        item.dividers.forEach(personId => {
+          if (matrix[personId]) {
+            matrix[personId][item.id] = splitAmount;
+            personTotals[personId] += splitAmount;
+            itemTotals[item.id] += splitAmount;
+          }
+        });
+      }
+    });
+
+    const grandTotal = Object.values(personTotals).reduce((sum, total) => sum + total, 0);
+
+    // Draw header
+    ctx.fillStyle = this.isDarkTheme ? '#f3f4f6' : '#212529';
+    ctx.font = 'bold 24px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Bill Calculator Export', canvas.width / 2, 40);
+
+    ctx.font = 'bold 18px Arial';
+    ctx.fillStyle = this.isDarkTheme ? '#f9fafb' : '#495057';
+    ctx.fillText(bill.name, canvas.width / 2, 70);
+
+    ctx.font = '14px Arial';
+    ctx.fillStyle = this.isDarkTheme ? '#cccccc' : '#6c757d';
+    const currentDate = new Date().toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    ctx.fillText(`Generated on ${currentDate}`, canvas.width / 2, 90);
+
+    // Table drawing parameters
+    const startY = 120;
+    const cellHeight = 45;
+    const headerHeight = 55;
+    const tableStartX = padding / 2;
+    const tableWidth = canvas.width - padding;
+
+    // Draw table border
+    ctx.strokeStyle = this.isDarkTheme ? '#374151' : '#495057';
+    ctx.lineWidth = borderWidth;
+    ctx.strokeRect(tableStartX, startY, tableWidth, headerHeight + (bill.persons.length + 1) * cellHeight);
+
+    // Draw table header background
+    ctx.fillStyle = this.isDarkTheme ? '#111827' : '#343a40';
+    ctx.fillRect(tableStartX, startY, tableWidth, headerHeight);
+
+    // Draw column separators for header
+    ctx.strokeStyle = this.isDarkTheme ? '#374151' : '#6c757d';
+    ctx.lineWidth = 1;
+    let currentX = tableStartX + personColWidth;
+    ctx.moveTo(currentX, startY);
+    ctx.lineTo(currentX, startY + headerHeight);
+    ctx.stroke();
+
+    bill.items.forEach((item, index) => {
+      currentX += itemColWidth;
+      ctx.moveTo(currentX, startY);
+      ctx.lineTo(currentX, startY + headerHeight);
+      ctx.stroke();
+    });
+
+    // Draw table header text
+    ctx.fillStyle = this.isDarkTheme ? '#f3f4f6' : '#ffffff';
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText('Person', tableStartX + 15, startY + 25);
+
+    // Draw item headers with text wrapping
+    currentX = tableStartX + personColWidth;
+    bill.items.forEach(item => {
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 14px Arial';
+      
+      // Wrap text if too long
+      const maxWidth = itemColWidth - 20;
+      const words = item.name.split(' ');
+      let line = '';
+      let lines = [];
+      
+      for (let n = 0; n < words.length; n++) {
+        const testLine = line + words[n] + ' ';
+        const metrics = ctx.measureText(testLine);
+        const testWidth = metrics.width;
+        
+        if (testWidth > maxWidth && n > 0) {
+          lines.push(line);
+          line = words[n] + ' ';
+        } else {
+          line = testLine;
+        }
+      }
+      lines.push(line);
+
+      // Draw wrapped text
+      const lineHeight = 16;
+      const startLineY = startY + 20 - ((lines.length - 1) * lineHeight / 2);
+      lines.forEach((textLine, lineIndex) => {
+        ctx.fillText(textLine.trim(), currentX + itemColWidth / 2, startLineY + (lineIndex * lineHeight));
+      });
+
+      // Draw price
+      ctx.font = '12px Arial';
+      ctx.fillStyle = this.isDarkTheme ? '#cccccc' : '#e9ecef';
+      ctx.fillText(`($${item.price.toFixed(2)})`, currentX + itemColWidth / 2, startY + 45);
+      ctx.fillStyle = this.isDarkTheme ? '#f3f4f6' : '#ffffff';
+      
+      currentX += itemColWidth;
+    });
+
+    // Draw "Total" header
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Total', currentX + totalColWidth / 2, startY + 30);
+
+    // Draw person rows
+    let currentY = startY + headerHeight;
+    bill.persons.forEach((person, personIndex) => {
+      // Alternate row colors
+      const rowColor = personIndex % 2 === 0 
+        ? (this.isDarkTheme ? '#374151' : '#f8f9fa')
+        : (this.isDarkTheme ? '#4b5563' : '#e9ecef');
+      
+      ctx.fillStyle = rowColor;
+      ctx.fillRect(tableStartX, currentY, tableWidth, cellHeight);
+
+      // Person name background
+      ctx.fillStyle = this.isDarkTheme ? '#374151' : '#6c757d';
+      ctx.fillRect(tableStartX, currentY, personColWidth, cellHeight);
+
+      // Draw column separators for row
+      ctx.strokeStyle = this.isDarkTheme ? '#4b5563' : '#dee2e6';
+      ctx.lineWidth = 1;
+      currentX = tableStartX + personColWidth;
+      ctx.moveTo(currentX, currentY);
+      ctx.lineTo(currentX, currentY + cellHeight);
+      ctx.stroke();
+
+      bill.items.forEach((item, index) => {
+        currentX += itemColWidth;
+        ctx.moveTo(currentX, currentY);
+        ctx.lineTo(currentX, currentY + cellHeight);
+        ctx.stroke();
+      });
+
+      // Person name text
+      ctx.fillStyle = this.isDarkTheme ? '#f9fafb' : '#ffffff';
+      ctx.font = 'bold 16px Arial';
+      ctx.textAlign = 'left';
+      
+      // Truncate long names if needed
+      let displayName = person.name;
+      const maxNameWidth = personColWidth - 30;
+      while (ctx.measureText(displayName).width > maxNameWidth && displayName.length > 3) {
+        displayName = displayName.substring(0, displayName.length - 4) + '...';
+      }
+      ctx.fillText(displayName, tableStartX + 15, currentY + 28);
+
+      // Item amounts
+      currentX = tableStartX + personColWidth;
+      bill.items.forEach(item => {
+        const amount = matrix[person.id][item.id];
+        const isChecked = item.dividers.includes(person.id);
+        
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 14px Arial';
+        
+        if (isChecked && amount > 0) {
+          ctx.fillStyle = this.isDarkTheme ? '#10b981' : '#28a745';
+          ctx.fillText('✓', currentX + itemColWidth / 2, currentY + 20);
+          ctx.font = '12px Arial';
+          ctx.fillText(`$${amount.toFixed(2)}`, currentX + itemColWidth / 2, currentY + 35);
+        } else {
+          ctx.fillStyle = this.isDarkTheme ? '#9ca3af' : '#6c757d';
+          ctx.font = '16px Arial';
+          ctx.fillText('-', currentX + itemColWidth / 2, currentY + 28);
+        }
+        
+        currentX += itemColWidth;
+      });
+
+      // Person total
+      ctx.fillStyle = this.isDarkTheme ? '#059669' : '#28a745';
+      ctx.fillRect(currentX, currentY, totalColWidth, cellHeight);
+      ctx.fillStyle = this.isDarkTheme ? '#f0fff4' : '#ffffff';
+      ctx.font = 'bold 16px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(`$${personTotals[person.id].toFixed(2)}`, currentX + totalColWidth / 2, currentY + 28);
+
+      currentY += cellHeight;
+    });
+
+    // Draw totals row
+    ctx.fillStyle = this.isDarkTheme ? '#059669' : '#28a745';
+    ctx.fillRect(tableStartX, currentY, tableWidth, cellHeight);
+
+    // Draw column separators for totals row
+    ctx.strokeStyle = this.isDarkTheme ? '#047857' : '#1e7e34';
+    ctx.lineWidth = 1;
+    currentX = tableStartX + personColWidth;
+    ctx.moveTo(currentX, currentY);
+    ctx.lineTo(currentX, currentY + cellHeight);
+    ctx.stroke();
+
+    bill.items.forEach((item, index) => {
+      currentX += itemColWidth;
+      ctx.moveTo(currentX, currentY);
+      ctx.lineTo(currentX, currentY + cellHeight);
+      ctx.stroke();
+    });
+
+    ctx.fillStyle = this.isDarkTheme ? '#f0fff4' : '#ffffff';
+    ctx.font = 'bold 18px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText('Total', tableStartX + 15, currentY + 30);
+
+    // Item totals
+    currentX = tableStartX + personColWidth;
+    ctx.font = 'bold 16px Arial';
+    bill.items.forEach(item => {
+      ctx.textAlign = 'center';
+      ctx.fillText(`$${itemTotals[item.id].toFixed(2)}`, currentX + itemColWidth / 2, currentY + 30);
+      currentX += itemColWidth;
+    });
+
+    // Grand total
+    ctx.font = 'bold 18px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(`$${grandTotal.toFixed(2)}`, currentX + totalColWidth / 2, currentY + 30);
+
+    // Download the image
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${billName.replace(/[^a-zA-Z0-9]/g, '_')}_summary_${new Date().toISOString().split('T')[0]}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
+    }, 'image/png');
+  }
+
 }
