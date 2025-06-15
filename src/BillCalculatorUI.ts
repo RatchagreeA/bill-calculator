@@ -32,37 +32,61 @@ export class BillCalculatorUI {
               <h2 id="currentBillTitle">Current Bill</h2>
               <button class="delete-bill-btn" onclick="billUI.deleteCurrentBill()">Delete Bill</button>
             </div>
-            
-            <!-- Add Person -->
-            <div class="subsection">
-              <h3>Add Person</h3>
-              <div class="form-group">
-                <input type="text" id="personName" placeholder="Enter person name">
-                <button onclick="billUI.addPerson()">Add Person</button>
-              </div>
-            </div>
 
-            <!-- Add Item -->
+            <!-- Items List -->
             <div class="subsection">
-              <h3>Add Item</h3>
-              <div class="form-group">
-                <input type="text" id="itemName" placeholder="Enter item name">
-                <input type="number" id="itemPrice" placeholder="Enter price" step="0.01">
-                <button onclick="billUI.addItem()">Add Item</button>
-              </div>
-            </div>
-
-            <!-- Items and Dividers -->
-            <div class="subsection">
-              <h3>Items & Dividers</h3>
+              <h3>Items</h3>
               <div id="itemsList"></div>
             </div>
 
-            <!-- Summary Table -->
+            <!-- Interactive Summary Table -->
             <div class="subsection">
-              <h3>Payment Summary</h3>
+              <div class="summary-header">
+                <h3>Payment Summary & Management</h3>
+                <div class="action-buttons">
+                  <button id="addPersonBtn" class="add-person-btn-external" onclick="billUI.showPersonModal()" style="display: none;">
+                    + Add Person
+                  </button>
+                  <button id="addItemBtn" class="add-item-btn-external" onclick="billUI.showItemModal()" style="display: none;">
+                    + Add Item
+                  </button>
+                </div>
+              </div>
+              <p style="color: #6c757d; font-size: 14px; margin-bottom: 15px;">
+                <strong>Instructions:</strong> Use "Add Person" and "Add Item" buttons to manage your bill. Check boxes to include a person in splitting an item's cost. 
+                Use "Delete" buttons to remove people or items.
+              </p>
               <div id="summaryTable"></div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hidden input for adding person -->
+      <div id="personInputModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+          <h4>Add New Person</h4>
+          <div class="form-group">
+            <input type="text" id="modalPersonName" placeholder="Enter person name" style="width: 200px;">
+          </div>
+          <div style="margin-top: 15px;">
+            <button onclick="billUI.addPersonFromModal()" style="margin-right: 10px;">Add Person</button>
+            <button onclick="billUI.closePersonModal()" style="background-color: #6c757d;">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hidden input for adding item -->
+      <div id="itemInputModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); min-width: 300px;">
+          <h4>Add New Item</h4>
+          <div class="form-group">
+            <input type="text" id="modalItemName" placeholder="Enter item name" style="width: 100%; margin-bottom: 10px;">
+            <input type="number" id="modalItemPrice" placeholder="Enter price" step="0.01" style="width: 100%;">
+          </div>
+          <div style="margin-top: 15px;">
+            <button onclick="billUI.addItemFromModal()" style="margin-right: 10px;">Add Item</button>
+            <button onclick="billUI.closeItemModal()" style="background-color: #6c757d;">Cancel</button>
           </div>
         </div>
       </div>
@@ -104,36 +128,163 @@ export class BillCalculatorUI {
           font-size: 14px;
         }
         .delete-bill-btn:hover { background-color: #c82333; }
-        .item-row { margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
-        .divider-buttons { margin-top: 10px; }
-        .divider-btn { margin: 2px; padding: 5px 10px; border: 1px solid #007bff; background-color: white; color: #007bff; border-radius: 3px; cursor: pointer; }
-        .divider-btn.active { background-color: #007bff; color: white; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        
+        /* Summary header with action buttons */
+        .summary-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 10px;
+        }
+        .action-buttons {
+          display: flex;
+          gap: 10px;
+        }
+        .add-person-btn-external {
+          background-color: #28a745;
+          color: white;
+          border: none;
+          padding: 8px 16px;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 14px;
+          font-weight: normal;
+        }
+        .add-person-btn-external:hover { background-color: #218838; }
+        .add-item-btn-external {
+          background-color: #007bff;
+          color: white;
+          border: none;
+          padding: 8px 16px;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 14px;
+          font-weight: normal;
+        }
+        .add-item-btn-external:hover { background-color: #0056b3; }
+        
+        /* Table Styles - Fixed borders and connections */
+        table { 
+          width: 100%; 
+          border-collapse: collapse; 
+          margin-top: 10px; 
+          border: 1px solid #ddd;
+        }
         th, td { 
-          padding: 12px; 
+          padding: 0; 
           text-align: center; 
           border: 1px solid #ddd; 
           font-size: 14px;
+          vertical-align: middle;
+          box-sizing: border-box;
         }
         th { 
           background-color: #f8f9fa; 
           font-weight: bold; 
           white-space: nowrap;
+          border: 1px solid #ddd;
+        }
+        
+        /* Person column styles - Full cell expansion */
+        .person-header {
+          background-color: #f8f9fa !important;
+          font-weight: bold;
+          min-width: 180px;
+          width: 100%;
+          height: 100%;
+          padding: 12px;
+          display: flex;
+          align-items: center;
+          text-align: left;
+          border: none;
+          margin: 0;
+          box-sizing: border-box;
+        }
+        .person-row-cell {
+          background-color: #f8f9fa !important;
+          font-weight: bold;
+          min-width: 180px;
+          width: 100%;
+          height: 100%;
+          padding: 12px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          text-align: left;
+          border: none;
+          margin: 0;
+          box-sizing: border-box;
         }
         .person-name-column { 
           text-align: left !important; 
           font-weight: bold; 
-          background-color: #f8f9fa;
-          min-width: 120px;
+          background-color: #f8f9fa !important;
+          min-width: 180px;
+          border: 1px solid #ddd;
+          padding: 12px;
+        }
+        
+        /* Item column styles */
+        .item-header {
+          background-color: #f8f9fa !important;
+          font-weight: bold;
+          min-width: 100px;
+          border: 1px solid #ddd;
+          padding: 12px;
+        }
+        
+        /* Total column styles */
+        .total-column {
+          background-color: #e9ecef !important;
+          font-weight: bold;
+          min-width: 100px;
+          border: 1px solid #ddd;
+          padding: 12px;
         }
         .total-row { 
           font-weight: bold; 
-          background-color: #e9ecef; 
+          background-color: #e9ecef !important;
         }
-        .total-column {
-          background-color: #e9ecef;
-          font-weight: bold;
+        .total-row td {
+          background-color: #e9ecef !important;
+          border: 1px solid #ddd;
+          padding: 12px;
         }
+        
+        /* Checkbox cell styles */
+        .checkbox-cell {
+          background-color: #fff !important;
+          padding: 12px;
+          border: 1px solid #ddd;
+        }
+        
+        .person-name {
+          flex-grow: 1;
+        }
+        .person-delete-btn {
+          background-color: #dc3545;
+          color: white;
+          border: none;
+          padding: 4px 8px;
+          border-radius: 3px;
+          cursor: pointer;
+          font-size: 11px;
+          margin-left: 10px;
+          flex-shrink: 0;
+        }
+        .person-delete-btn:hover { background-color: #c82333; }
+        .add-person-btn {
+          background-color: #28a745;
+          color: white;
+          border: none;
+          padding: 4px 8px;
+          border-radius: 3px;
+          cursor: pointer;
+          font-size: 10px;
+          font-weight: normal;
+          flex-shrink: 0;
+        }
+        .add-person-btn:hover { background-color: #218838; }
         .empty-cell {
           background-color: #f8f9fa;
           color: #6c757d;
@@ -141,8 +292,30 @@ export class BillCalculatorUI {
         }
         .amount-cell {
           font-weight: 500;
+          background-color: #e8f5e8;
         }
-        .remove-btn { background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; margin-left: 10px; }
+        .divider-checkbox {
+          transform: scale(1.2);
+          cursor: pointer;
+        }
+        .item-info {
+          display: inline-block;
+          margin: 5px;
+          padding: 5px 10px;
+          background-color: #e9ecef;
+          border-radius: 3px;
+          font-size: 12px;
+        }
+        .remove-btn { 
+          background-color: #dc3545; 
+          color: white; 
+          border: none; 
+          padding: 3px 8px; 
+          border-radius: 3px; 
+          cursor: pointer; 
+          margin-left: 8px;
+          font-size: 11px;
+        }
         .remove-btn:hover { background-color: #c82333; }
         .bill-delete-btn { 
           background-color: #dc3545; 
@@ -169,6 +342,27 @@ export class BillCalculatorUI {
           padding: 20px;
           color: #6c757d;
           font-style: italic;
+        }
+        .list-container {
+          margin-top: 10px;
+        }
+        .empty-persons-message {
+          text-align: center;
+          padding: 40px 20px;
+          color: #6c757d;
+          font-style: italic;
+          border: 2px dashed #ddd;
+          border-radius: 8px;
+          margin: 20px 0;
+        }
+        .empty-items-message {
+          text-align: center;
+          padding: 40px 20px;
+          color: #6c757d;
+          font-style: italic;
+          border: 2px dashed #ddd;
+          border-radius: 8px;
+          margin: 20px 0;
         }
       </style>
     `;
@@ -215,7 +409,6 @@ export class BillCalculatorUI {
     if (confirm(confirmMessage)) {
       const success = this.calculator.deleteBill(billId);
       if (success) {
-        // If we're deleting the currently selected bill, hide the current bill section
         if (this.currentBillId === billId) {
           this.currentBillId = null;
           document.getElementById('currentBillSection')!.style.display = 'none';
@@ -232,10 +425,20 @@ export class BillCalculatorUI {
     this.deleteBill(this.currentBillId);
   }
 
-  addPerson(): void {
+  showPersonModal(): void {
+    document.getElementById('personInputModal')!.style.display = 'block';
+    setTimeout(() => document.getElementById('modalPersonName')!.focus(), 100);
+  }
+
+  closePersonModal(): void {
+    document.getElementById('personInputModal')!.style.display = 'none';
+    (document.getElementById('modalPersonName') as HTMLInputElement).value = '';
+  }
+
+  addPersonFromModal(): void {
     if (!this.currentBillId) return;
 
-    const personNameInput = document.getElementById('personName') as HTMLInputElement;
+    const personNameInput = document.getElementById('modalPersonName') as HTMLInputElement;
     const personName = personNameInput.value.trim();
     
     if (!personName) {
@@ -244,16 +447,26 @@ export class BillCalculatorUI {
     }
 
     this.calculator.addPerson(this.currentBillId, personName);
-    personNameInput.value = '';
-    this.updateItemsList();
+    this.closePersonModal();
     this.updateSummaryTable();
   }
 
-  addItem(): void {
+  showItemModal(): void {
+    document.getElementById('itemInputModal')!.style.display = 'block';
+    setTimeout(() => document.getElementById('modalItemName')!.focus(), 100);
+  }
+
+  closeItemModal(): void {
+    document.getElementById('itemInputModal')!.style.display = 'none';
+    (document.getElementById('modalItemName') as HTMLInputElement).value = '';
+    (document.getElementById('modalItemPrice') as HTMLInputElement).value = '';
+  }
+
+  addItemFromModal(): void {
     if (!this.currentBillId) return;
 
-    const itemNameInput = document.getElementById('itemName') as HTMLInputElement;
-    const itemPriceInput = document.getElementById('itemPrice') as HTMLInputElement;
+    const itemNameInput = document.getElementById('modalItemName') as HTMLInputElement;
+    const itemPriceInput = document.getElementById('modalItemPrice') as HTMLInputElement;
     
     const itemName = itemNameInput.value.trim();
     const itemPrice = parseFloat(itemPriceInput.value);
@@ -264,26 +477,31 @@ export class BillCalculatorUI {
     }
 
     this.calculator.addItem(this.currentBillId, itemName, itemPrice);
-    itemNameInput.value = '';
-    itemPriceInput.value = '';
+    this.closeItemModal();
     this.updateItemsList();
     this.updateSummaryTable();
   }
 
-  toggleDivider(itemId: string, personId: string): void {
+  addItem(): void {
+    // This method is kept for backward compatibility but now redirects to modal
+    this.showItemModal();
+  }
+
+  toggleDividerFromTable(itemId: string, personId: string): void {
     if (!this.currentBillId) return;
 
     this.calculator.togglePersonAsDivider(this.currentBillId, itemId, personId);
-    this.updateItemsList();
     this.updateSummaryTable();
   }
 
   removePerson(personId: string): void {
     if (!this.currentBillId) return;
 
-    if (confirm('Are you sure you want to remove this person?')) {
+    const bill = this.calculator.getBill(this.currentBillId);
+    const person = bill?.persons.find(p => p.id === personId);
+    
+    if (confirm(`Remove "${person?.name}" from this bill?`)) {
       this.calculator.removePerson(this.currentBillId, personId);
-      this.updateItemsList();
       this.updateSummaryTable();
     }
   }
@@ -337,39 +555,27 @@ export class BillCalculatorUI {
 
     const itemsList = document.getElementById('itemsList')!;
     
+    if (bill.items.length === 0) {
+      itemsList.innerHTML = `
+        <div class="empty-items-message">
+          <h4>No items added yet</h4>
+          <p>Add items to start splitting costs</p>
+          <p style="color: #007bff; font-weight: bold;">↘ Use the "Add Item" button below</p>
+        </div>
+      `;
+      return;
+    }
+
     itemsList.innerHTML = `
-      ${bill.items.length === 0 ? '<p>No items added yet.</p>' : ''}
-      ${bill.items.map(item => `
-        <div class="item-row">
-          <div>
-            <strong>${item.name}</strong> - $${item.price.toFixed(2)}
-            <button class="remove-btn" onclick="billUI.removeItem('${item.id}')">Remove</button>
-          </div>
-          <div class="divider-buttons">
-            <strong>Split with:</strong>
-            ${bill.persons.map(person => `
-              <button class="divider-btn ${item.dividers.includes(person.id) ? 'active' : ''}"
-                      onclick="billUI.toggleDivider('${item.id}', '${person.id}')">
-                ${person.name}
-              </button>
-            `).join('')}
-            ${bill.persons.length === 0 ? '<span>No persons added yet.</span>' : ''}
-          </div>
-          ${item.dividers.length > 0 ? `<div><small>Split ${item.dividers.length} ways = $${(item.price / item.dividers.length).toFixed(2)} each</small></div>` : ''}
-        </div>
-      `).join('')}
-      
-      ${bill.persons.length > 0 ? `
-        <div style="margin-top: 20px;">
-          <strong>Persons:</strong>
-          ${bill.persons.map(person => `
-            <span style="display: inline-block; margin: 5px; padding: 5px 10px; background-color: #e9ecef; border-radius: 3px;">
-              ${person.name}
-              <button class="remove-btn" style="margin-left: 5px; padding: 2px 5px; font-size: 12px;" onclick="billUI.removePerson('${person.id}')">×</button>
-            </span>
-          `).join('')}
-        </div>
-      ` : ''}
+      <div class="list-container">
+        <strong>Items (${bill.items.length}):</strong><br>
+        ${bill.items.map(item => `
+          <span class="item-info">
+            ${item.name} - $${item.price.toFixed(2)}
+            <button class="remove-btn" onclick="billUI.removeItem('${item.id}')">×</button>
+          </span>
+        `).join('')}
+      </div>
     `;
   }
 
@@ -378,18 +584,36 @@ export class BillCalculatorUI {
 
     const bill = this.calculator.getBill(this.currentBillId);
     const summaryTable = document.getElementById('summaryTable')!;
+    const addPersonBtn = document.getElementById('addPersonBtn')!;
+    const addItemBtn = document.getElementById('addItemBtn')!;
     
     if (!bill) {
       summaryTable.innerHTML = '<div class="no-data-message">Bill not found.</div>';
+      addPersonBtn.style.display = 'none';
+      addItemBtn.style.display = 'none';
       return;
     }
 
-    if (bill.persons.length === 0 || bill.items.length === 0) {
+    // Always show both buttons when bill is selected
+    addPersonBtn.style.display = 'inline-block';
+    addItemBtn.style.display = 'inline-block';
+
+    if (bill.items.length === 0) {
       summaryTable.innerHTML = `
         <div class="no-data-message">
-          ${bill.persons.length === 0 ? 'No persons added yet.' : ''}
-          ${bill.items.length === 0 ? 'No items added yet.' : ''}
-          ${bill.persons.length === 0 && bill.items.length === 0 ? 'Add persons and items to see the payment summary.' : ''}
+          No items to split yet. Add items first to see the payment summary.
+        </div>
+      `;
+      return;
+    }
+
+    // If no persons, show special message with add person option
+    if (bill.persons.length === 0) {
+      summaryTable.innerHTML = `
+        <div class="empty-persons-message">
+          <h4>No persons added yet</h4>
+          <p>Add people to split the bill costs</p>
+          <p style="color: #28a745; font-weight: bold;">↗ Use the "Add Person" button above</p>
         </div>
       `;
       return;
@@ -433,20 +657,48 @@ export class BillCalculatorUI {
         <table>
           <thead>
             <tr>
-              <th class="person-name-column">Person</th>
-              ${bill.items.map(item => `<th>${item.name}</th>`).join('')}
+              <th style="padding: 0;">
+                <div class="person-header">
+                  Person
+                </div>
+              </th>
+              ${bill.items.map(item => `
+                <th class="item-header">
+                  ${item.name}<br>
+                  <small style="font-weight: normal; color: #6c757d;">($${item.price.toFixed(2)})</small>
+                </th>
+              `).join('')}
               <th class="total-column">Total</th>
             </tr>
           </thead>
           <tbody>
             ${bill.persons.map(person => `
               <tr>
-                <td class="person-name-column">${person.name}</td>
+                <td style="padding: 0;">
+                  <div class="person-row-cell">
+                    <span class="person-name">${person.name}</span>
+                    <button class="person-delete-btn" onclick="billUI.removePerson('${person.id}')">
+                      Delete
+                    </button>
+                  </div>
+                </td>
                 ${bill.items.map(item => {
                   const amount = matrix[person.id][item.id];
-                  return `<td class="${amount > 0 ? 'amount-cell' : 'empty-cell'}">
-                    ${amount > 0 ? `$${amount.toFixed(2)}` : '-'}
-                  </td>`;
+                  const isChecked = item.dividers.includes(person.id);
+                  
+                  return `
+                    <td class="checkbox-cell">
+                      <input type="checkbox" 
+                             class="divider-checkbox" 
+                             ${isChecked ? 'checked' : ''} 
+                             onchange="billUI.toggleDividerFromTable('${item.id}', '${person.id}')"
+                             id="checkbox_${person.id}_${item.id}">
+                      <br>
+                      <small style="color: ${amount > 0 ? '#28a745' : '#6c757d'}; font-weight: ${amount > 0 ? 'bold' : 'normal'};">
+                        ${amount > 0 ? `$${amount.toFixed(2)}` : '-'}
+                      </small>
+                    </td>
+                  `;
                 }).join('')}
                 <td class="total-column">$${personTotals[person.id].toFixed(2)}</td>
               </tr>
@@ -454,7 +706,7 @@ export class BillCalculatorUI {
             <tr class="total-row">
               <td class="person-name-column">Total</td>
               ${bill.items.map(item => `
-                <td>$${itemTotals[item.id].toFixed(2)}</td>
+                <td class="total-column">$${itemTotals[item.id].toFixed(2)}</td>
               `).join('')}
               <td class="total-column">$${grandTotal.toFixed(2)}</td>
             </tr>
@@ -462,5 +714,21 @@ export class BillCalculatorUI {
         </table>
       </div>
     `;
+
+    // Add keyboard support for modal
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && document.getElementById('personInputModal')!.style.display === 'block') {
+        this.addPersonFromModal();
+      }
+      if (e.key === 'Escape' && document.getElementById('personInputModal')!.style.display === 'block') {
+        this.closePersonModal();
+      }
+      if (e.key === 'Enter' && document.getElementById('personInputModal')!.style.display === 'block') {
+        this.addItemFromModal();
+      }
+      if (e.key === 'Escape' && document.getElementById('personInputModal')!.style.display === 'block') {
+        this.closeItemModal();
+      }
+    });
   }
 }
