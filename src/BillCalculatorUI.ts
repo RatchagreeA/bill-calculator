@@ -51,10 +51,10 @@ export class BillCalculatorUI {
                 <h3>Payment Summary & Management</h3>
                 <div class="action-buttons">
                   <button id="addPersonBtn" class="add-person-btn-external" onclick="billUI.showPersonModal()" style="display: none;">
-                    + Add Person
+                    + Person
                   </button>
                   <button id="addItemBtn" class="add-item-btn-external" onclick="billUI.showItemModal()" style="display: none;">
-                    + Add Item
+                    + Item
                   </button>
                   <button id="exportBtn" class="export-btn-external" onclick="billUI.exportTableToImage()" style="display: none;">
                     📷 Export
@@ -133,7 +133,7 @@ export class BillCalculatorUI {
                   placeholder="0.00"
                   step="0.01"
                   min="0"
-                  max="9999.99"
+                  max="1000000"
                 />
                 <div class="modal-form-hint">Enter the total cost of this item</div>
                 <div class="modal-error-message" id="itemPriceError"></div>
@@ -406,7 +406,7 @@ export class BillCalculatorUI {
         }
         .bill-item { 
           flex: 1 1 180px;
-          min-width: 280px;
+          min-width: 200px;
           max-width: 300px;
           max-height: 120px;
           padding: 15px; 
@@ -1194,6 +1194,31 @@ export class BillCalculatorUI {
             padding: 8px 6px;
           }
         }
+        @media (max-width: 500px) {
+          .summary-header {
+            gap: 10px
+          }
+          .action-buttons {
+            flex-direction: column;
+          }
+          .add-person-btn-external {
+            padding: 4px 8px;
+            font-size: 10px;
+          }
+          .add-item-btn-external {
+            padding: 4px 8px;
+            font-size: 10px;
+          }
+          .export-btn-external {
+            padding: 4px 8px;
+            font-size: 10px;
+          }
+        }
+        @media (max-width: 410px) {
+          .input-group {
+            flex-direction: column;
+          }
+        }
       </style>
     `;
 
@@ -1426,8 +1451,8 @@ export class BillCalculatorUI {
     } else if (itemPrice <= 0) {
       this.showModalError('item', 'itemPrice', 'Price must be greater than 0');
       hasErrors = true;
-    } else if (itemPrice > 9999.99) {
-      this.showModalError('item', 'itemPrice', 'Price cannot exceed $9,999.99');
+    } else if (itemPrice > 1000000.00) {
+      this.showModalError('item', 'itemPrice', 'Price cannot exceed $1,000,000');
       hasErrors = true;
     }
 
@@ -1536,7 +1561,7 @@ export class BillCalculatorUI {
     const bill = this.calculator.getBill(this.currentBillId);
     const item = bill?.items.find(i => i.id === itemId);
     
-    if (confirm(`Remove "${item?.name}" ($${item?.price.toFixed(2)}) from this bill?`)) {
+    if (confirm(`Remove "${item?.name}" ($${item?.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}) from this bill?`)) {
       this.calculator.removeItem(this.currentBillId, itemId);
       this.updateSummaryTable();
     }
@@ -1562,7 +1587,7 @@ export class BillCalculatorUI {
             <div class="bill-item-stats" style="color: ${bill.id === this.currentBillId ? '#ffffff' : 'var(--text-secondary)'};">
               👥 ${bill.persons.length} person(s)<br>
               🧾 ${bill.items.length} item(s)<br>
-              💰 Total: $${totalAmount.toFixed(2)}
+              💰 Total: $${totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </div>
           <div class="bill-item-actions">
@@ -1670,7 +1695,7 @@ export class BillCalculatorUI {
                   <div class="item-header-content">
                     <div class="item-name-price">
                       ${item.name}<br>
-                      <small style="font-weight: normal; color: var(--text-secondary);">($${item.price.toFixed(2)})</small>
+                      <small style="font-weight: normal; color: var(--text-secondary);">($${item.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })})</small>
                     </div>
                     <button class="item-delete-btn" onclick="billUI.removeItem('${item.id}')" title="Delete ${item.name}">
                       Delete
@@ -1704,12 +1729,12 @@ export class BillCalculatorUI {
                              onchange="billUI.toggleDividerFromTable('${item.id}', '${person.id}')"
                              id="checkbox_${person.id}_${item.id}">
                       <small style="color: ${amount > 0 ? 'var(--btn-success)' : 'var(--text-secondary)'}; font-weight: ${amount > 0 ? '600' : 'normal'};">
-                        ${amount > 0 ? `$${amount.toFixed(2)}` : '-'}
+                        ${amount > 0 ? `$${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '-'}
                       </small>
                     </td>
                   `;
                 }).join('')}
-                <td class="total-column">$${personTotals[person.id].toFixed(2)}</td>
+                <td class="total-column">$${personTotals[person.id].toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
               </tr>
             `).join('')}
             <tr class="total-row">
@@ -1719,9 +1744,9 @@ export class BillCalculatorUI {
                 </div>
               </td>
               ${bill.items.map(item => `
-                <td class="total-column">$${itemTotals[item.id].toFixed(2)}</td>
+                <td class="total-column">$${itemTotals[item.id].toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
               `).join('')}
-              <td class="total-column">$${grandTotal.toFixed(2)}</td>
+              <td class="total-column">$${grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
             </tr>
           </tbody>
         </table>
@@ -1952,7 +1977,7 @@ export class BillCalculatorUI {
       // Draw price
       ctx.font = '12px Arial';
       ctx.fillStyle = this.isDarkTheme ? '#cccccc' : '#e9ecef';
-      ctx.fillText(`($${item.price.toFixed(2)})`, currentX + itemColWidth / 2, startY + 45);
+      ctx.fillText(`($${item.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`, currentX + itemColWidth / 2, startY + 45);
       ctx.fillStyle = this.isDarkTheme ? '#f3f4f6' : '#ffffff';
       
       currentX += itemColWidth;
@@ -2019,7 +2044,7 @@ export class BillCalculatorUI {
           ctx.fillStyle = this.isDarkTheme ? '#10b981' : '#28a745';
           ctx.fillText('✓', currentX + itemColWidth / 2, currentY + 20);
           ctx.font = '12px Arial';
-          ctx.fillText(`$${amount.toFixed(2)}`, currentX + itemColWidth / 2, currentY + 35);
+          ctx.fillText(`$${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, currentX + itemColWidth / 2, currentY + 35);
         } else {
           ctx.fillStyle = this.isDarkTheme ? '#9ca3af' : '#6c757d';
           ctx.font = '16px Arial';
@@ -2035,7 +2060,7 @@ export class BillCalculatorUI {
       ctx.fillStyle = this.isDarkTheme ? '#f0fff4' : '#ffffff';
       ctx.font = 'bold 16px Arial';
       ctx.textAlign = 'center';
-      ctx.fillText(`$${personTotals[person.id].toFixed(2)}`, currentX + totalColWidth / 2, currentY + 28);
+      ctx.fillText(`$${personTotals[person.id].toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, currentX + totalColWidth / 2, currentY + 28);
 
       currentY += cellHeight;
     });
@@ -2069,14 +2094,14 @@ export class BillCalculatorUI {
     ctx.font = 'bold 16px Arial';
     bill.items.forEach(item => {
       ctx.textAlign = 'center';
-      ctx.fillText(`$${itemTotals[item.id].toFixed(2)}`, currentX + itemColWidth / 2, currentY + 30);
+      ctx.fillText(`$${itemTotals[item.id].toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, currentX + itemColWidth / 2, currentY + 30);
       currentX += itemColWidth;
     });
 
     // Grand total
     ctx.font = 'bold 18px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText(`$${grandTotal.toFixed(2)}`, currentX + totalColWidth / 2, currentY + 30);
+    ctx.fillText(`$${grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, currentX + totalColWidth / 2, currentY + 30);
 
     // Download the image
     canvas.toBlob((blob) => {
