@@ -71,34 +71,85 @@ export class BillCalculatorUI {
         </div>
       </div>
 
-      <!-- Hidden input for adding person -->
-      <div id="personInputModal" class="modal-overlay">
-        <div class="modal-content">
-          <h4>Add New Person</h4>
-          <div class="form-group">
-            <input type="text" id="modalPersonName" placeholder="Enter person name" style="width: 200px;">
-          </div>
-          <div style="margin-top: 15px;">
-            <button onclick="billUI.addPersonFromModal()" style="margin-right: 10px;">Add Person</button>
-            <button onclick="billUI.closePersonModal()" class="secondary-btn">Cancel</button>
+        <!-- Person Input Modal -->
+        <div id="personInputModal" class="modal-overlay" style="display: none;" aria-hidden="true">
+          <div class="modal-content" data-modal="person">
+            <div class="modal-header">
+              <h3 class="modal-title">Add Person</h3>
+              <button class="modal-close" onclick="billUI.closePersonModal()" aria-label="Close modal">×</button>
+            </div>
+            <div class="modal-body">
+              <div class="modal-form-group">
+                <label class="modal-label" for="modalPersonName">Person Name</label>
+                <input 
+                  type="text" 
+                  id="modalPersonName" 
+                  class="modal-input" 
+                  placeholder="Enter person's name"
+                  maxlength="50"
+                  autocomplete="name"
+                />
+                <div class="modal-form-hint">Who will be splitting the bill?</div>
+                <div class="modal-error-message" id="personNameError"></div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="modal-btn modal-btn-secondary" onclick="billUI.closePersonModal()">
+                Cancel
+              </button>
+              <button class="modal-btn modal-btn-primary" onclick="billUI.addPersonFromModal()" id="addPersonBtn">
+                <span>Add Person</span>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Hidden input for adding item -->
-      <div id="itemInputModal" class="modal-overlay">
-        <div class="modal-content">
-          <h4>Add New Item</h4>
-          <div class="form-group">
-            <input type="text" id="modalItemName" placeholder="Enter item name" style="width: 100%; margin-bottom: 10px;">
-            <input type="number" id="modalItemPrice" placeholder="Enter price" step="0.01" style="width: 100%;">
-          </div>
-          <div style="margin-top: 15px;">
-            <button onclick="billUI.addItemFromModal()" style="margin-right: 10px;">Add Item</button>
-            <button onclick="billUI.closeItemModal()" class="secondary-btn">Cancel</button>
+        <!-- Item Input Modal -->
+        <div id="itemInputModal" class="modal-overlay" style="display: none;" aria-hidden="true">
+          <div class="modal-content" data-modal="item">
+            <div class="modal-header">
+              <h3 class="modal-title">Add Item</h3>
+              <button class="modal-close" onclick="billUI.closeItemModal()" aria-label="Close modal">×</button>
+            </div>
+            <div class="modal-body">
+              <div class="modal-form-group">
+                <label class="modal-label" for="modalItemName">Item Name</label>
+                <input 
+                  type="text" 
+                  id="modalItemName" 
+                  class="modal-input" 
+                  placeholder="e.g., Pizza, Drinks, Appetizer"
+                  maxlength="100"
+                />
+                <div class="modal-form-hint">What item are you adding to the bill?</div>
+                <div class="modal-error-message" id="itemNameError"></div>
+              </div>
+              <div class="modal-form-group">
+                <label class="modal-label" for="modalItemPrice">Price ($)</label>
+                <input 
+                  type="number" 
+                  id="modalItemPrice" 
+                  class="modal-input" 
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0"
+                  max="9999.99"
+                />
+                <div class="modal-form-hint">Enter the total cost of this item</div>
+                <div class="modal-error-message" id="itemPriceError"></div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="modal-btn modal-btn-secondary" onclick="billUI.closeItemModal()">
+                Cancel
+              </button>
+              <button class="modal-btn modal-btn-primary" onclick="billUI.addItemFromModal()" id="addItemBtn">
+                <span>Add Item</span>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+
 
       <style>
         :root {
@@ -390,41 +441,328 @@ export class BillCalculatorUI {
           transform: translateY(-1px);
         }
 
-        /* Modal Styles */
+        /* Modal Styles - Enhanced Design */
         .modal-overlay {
-          display: none;
           position: fixed;
           top: 0;
           left: 0;
           width: 100%;
           height: 100%;
-          background-color: rgba(0,0,0,0.5);
+          background: rgba(0, 0, 0, 0.6);
+          backdrop-filter: blur(4px);
+          display: flex;
+          justify-content: center;
+          align-items: center;
           z-index: 1000;
+          opacity: 0;
+          animation: modalFadeIn 0.2s ease-out forwards;
+        }
+
+        @keyframes modalFadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+
+        @keyframes modalSlideIn {
+          from {
+            transform: translateY(-20px) scale(0.95);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+          }
         }
 
         .modal-content {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
           background: var(--bg-primary);
+          border-radius: 16px;
+          padding: 0;
+          width: 90%;
+          max-width: 440px;
+          max-height: 90vh;
+          overflow: hidden;
+          box-shadow: 
+            0 20px 25px -5px rgba(0, 0, 0, 0.1),
+            0 10px 10px -5px rgba(0, 0, 0, 0.04),
+            0 0 0 1px var(--border-color);
+          animation: modalSlideIn 0.2s ease-out forwards;
+          position: relative;
+        }
+
+        [data-theme="dark"] .modal-content {
+          box-shadow: 
+            0 20px 25px -5px rgba(0, 0, 0, 0.4),
+            0 10px 10px -5px rgba(0, 0, 0, 0.2),
+            0 0 0 1px var(--border-color);
+        }
+
+        .modal-header {
+          padding: 24px 24px 0 24px;
+          border-bottom: 1px solid var(--border-light);
+          background: var(--bg-secondary);
+          position: relative;
+        }
+
+        .modal-title {
+          font-size: 20px;
+          font-weight: 600;
           color: var(--text-primary);
-          padding: 20px;
+          margin: 0 0 16px 0;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .modal-title::before {
+          content: "👤";
+        }
+
+        .modal-content[data-modal="item"] .modal-title::before {
+          content: "🧾";
+        }
+
+        .modal-close {
+          position: absolute;
+          top: 16px;
+          right: 16px;
+          background: none;
+          border: none;
+          font-size: 24px;
+          color: var(--text-secondary);
+          cursor: pointer;
+          padding: 8px;
           border-radius: 8px;
-          box-shadow: 0 4px 6px var(--shadow);
-          border: 1px solid var(--border-color);
-          min-width: 300px;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 40px;
+          height: 40px;
         }
 
-        .modal-content h4 {
-          margin-top: 0;
+        .modal-close:hover {
+          background: var(--bg-tertiary);
           color: var(--text-primary);
+          transform: scale(1.1);
         }
 
-        .modal-content input {
-          background-color: var(--bg-secondary);
+        .modal-body {
+          padding: 24px;
+          background: var(--bg-primary);
+        }
+
+        .modal-form-group {
+          margin-bottom: 20px;
+        }
+
+        .modal-form-group:last-child {
+          margin-bottom: 0;
+        }
+
+        .modal-label {
+          display: block;
+          font-size: 14px;
+          font-weight: 600;
           color: var(--text-primary);
-          border: 1px solid var(--border-color);
+          margin-bottom: 8px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .modal-input {
+          width: 100%;
+          padding: 12px 16px;
+          border: 2px solid var(--border-color);
+          border-radius: 8px;
+          font-size: 16px;
+          color: var(--text-primary);
+          background: var(--bg-primary);
+          transition: all 0.2s ease;
+          box-sizing: border-box;
+        }
+
+        .modal-input:focus {
+          outline: none;
+          border-color: var(--btn-primary);
+          box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+          transform: translateY(-1px);
+        }
+
+        .modal-input::placeholder {
+          color: var(--text-secondary);
+          font-style: italic;
+        }
+
+        .modal-input.error {
+          border-color: var(--btn-danger);
+          box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+        }
+
+        .modal-input-icon {
+          position: relative;
+        }
+
+        .modal-input-icon::before {
+          content: "";
+          position: absolute;
+          left: 12px;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 16px;
+          height: 16px;
+          background: var(--text-secondary);
+          z-index: 1;
+        }
+
+        .modal-input-icon .modal-input {
+          padding-left: 40px;
+        }
+
+        .modal-footer {
+          padding: 16px 24px 24px 24px;
+          background: var(--bg-secondary);
+          display: flex;
+          gap: 12px;
+          justify-content: flex-end;
+          border-top: 1px solid var(--border-light);
+        }
+
+        .modal-btn {
+          padding: 12px 24px;
+          border: none;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          min-width: 80px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+        }
+
+        .modal-btn-primary {
+          background: var(--btn-primary);
+          color: white;
+        }
+
+        .modal-btn-primary:hover {
+          background: var(--btn-primary-hover);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+        }
+
+        .modal-btn-primary:disabled {
+          background: var(--text-secondary);
+          cursor: not-allowed;
+          transform: none;
+          box-shadow: none;
+        }
+
+        .modal-btn-secondary {
+          background: transparent;
+          color: var(--text-secondary);
+          border: 2px solid var(--border-color);
+        }
+
+        .modal-btn-secondary:hover {
+          background: var(--bg-tertiary);
+          color: var(--text-primary);
+          border-color: var(--text-secondary);
+          transform: translateY(-1px);
+        }
+
+        .modal-form-hint {
+          font-size: 12px;
+          color: var(--text-secondary);
+          margin-top: 4px;
+          font-style: italic;
+        }
+
+        .modal-error-message {
+          color: var(--btn-danger);
+          font-size: 12px;
+          margin-top: 4px;
+          font-weight: 500;
+          display: none;
+        }
+
+        .modal-success-message {
+          color: var(--btn-success);
+          font-size: 12px;
+          margin-top: 4px;
+          font-weight: 500;
+          display: none;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+          .modal-content {
+            width: 95%;
+            margin: 20px;
+            max-width: none;
+          }
+
+          .modal-header,
+          .modal-body,
+          .modal-footer {
+            padding-left: 20px;
+            padding-right: 20px;
+          }
+
+          .modal-title {
+            font-size: 18px;
+          }
+
+          .modal-footer {
+            flex-direction: column-reverse;
+          }
+
+          .modal-btn {
+            width: 100%;
+            justify-content: center;
+          }
+        }
+
+        /* Loading States */
+        .modal-btn.loading {
+          position: relative;
+          color: transparent;
+        }
+
+        .modal-btn.loading::after {
+          content: "";
+          position: absolute;
+          width: 16px;
+          height: 16px;
+          border: 2px solid transparent;
+          border-top: 2px solid currentColor;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+          color: white;
+        }
+
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
+        /* Focus trap for accessibility */
+        .modal-overlay[aria-hidden="false"] {
+          pointer-events: auto;
+        }
+
+        .modal-overlay[aria-hidden="true"] {
+          pointer-events: none;
         }
         
         /* Table Styles - Using CSS Variables */
@@ -867,40 +1205,122 @@ export class BillCalculatorUI {
   }
 
   showPersonModal(): void {
-    document.getElementById('personInputModal')!.style.display = 'block';
-    setTimeout(() => document.getElementById('modalPersonName')!.focus(), 100);
+    const modal = document.getElementById('personInputModal')!;
+    const input = document.getElementById('modalPersonName') as HTMLInputElement;
+    
+    modal.style.display = 'flex';
+    modal.setAttribute('aria-hidden', 'false');
+    
+    // Clear previous values and errors
+    input.value = '';
+    this.clearModalErrors('person');
+    
+    // Focus with slight delay for animation
+    setTimeout(() => {
+      input.focus();
+      input.select();
+    }, 150);
+    
+    // Prevent body scroll
+    document.body.style.overflow = 'hidden';
   }
 
   closePersonModal(): void {
-    document.getElementById('personInputModal')!.style.display = 'none';
+    const modal = document.getElementById('personInputModal')!;
+    
+    modal.style.display = 'none';
+    modal.setAttribute('aria-hidden', 'true');
+    
+    // Clear form
     (document.getElementById('modalPersonName') as HTMLInputElement).value = '';
+    this.clearModalErrors('person');
+    
+    // Restore body scroll
+    document.body.style.overflow = '';
   }
 
   addPersonFromModal(): void {
     if (!this.currentBillId) return;
 
     const personNameInput = document.getElementById('modalPersonName') as HTMLInputElement;
+    const addButton = document.getElementById('addPersonBtn')! as HTMLInputElement;
     const personName = personNameInput.value.trim();
     
+    // Clear previous errors
+    this.clearModalErrors('person');
+    
+    // Validation
     if (!personName) {
-      alert('Please enter a person name');
+      this.showModalError('person', 'personName', 'Please enter a person name');
+      personNameInput.focus();
+      return;
+    }
+    
+    if (personName.length < 2) {
+      this.showModalError('person', 'personName', 'Name must be at least 2 characters');
+      personNameInput.focus();
       return;
     }
 
-    this.calculator.addPerson(this.currentBillId, personName);
-    this.closePersonModal();
-    this.updateSummaryTable();
+    // Check for duplicate names
+    const bill = this.calculator.getBill(this.currentBillId);
+    if (bill?.persons.some(p => p.name.toLowerCase() === personName.toLowerCase())) {
+      this.showModalError('person', 'personName', 'This person is already added');
+      personNameInput.focus();
+      return;
+    }
+
+    // Show loading state
+    addButton.classList.add('loading');
+    addButton.disabled = true;
+
+    // Simulate API call delay (remove in production)
+    // setTimeout(() => {
+      this.calculator.addPerson(this.currentBillId!, personName);
+      this.closePersonModal();
+      this.updateSummaryTable();
+      
+      // Remove loading state
+      addButton.classList.remove('loading');
+      addButton.disabled = false;
+    // }, 300);
   }
 
   showItemModal(): void {
-    document.getElementById('itemInputModal')!.style.display = 'block';
-    setTimeout(() => document.getElementById('modalItemName')!.focus(), 100);
+    const modal = document.getElementById('itemInputModal')!;
+    const nameInput = document.getElementById('modalItemName') as HTMLInputElement;
+    
+    modal.style.display = 'flex';
+    modal.setAttribute('aria-hidden', 'false');
+    
+    // Clear previous values and errors
+    nameInput.value = '';
+    (document.getElementById('modalItemPrice') as HTMLInputElement).value = '';
+    this.clearModalErrors('item');
+    
+    // Focus with slight delay for animation
+    setTimeout(() => {
+      nameInput.focus();
+      nameInput.select();
+    }, 150);
+    
+    // Prevent body scroll
+    document.body.style.overflow = 'hidden';
   }
 
   closeItemModal(): void {
-    document.getElementById('itemInputModal')!.style.display = 'none';
+    const modal = document.getElementById('itemInputModal')!;
+    
+    modal.style.display = 'none';
+    modal.setAttribute('aria-hidden', 'true');
+    
+    // Clear form
     (document.getElementById('modalItemName') as HTMLInputElement).value = '';
     (document.getElementById('modalItemPrice') as HTMLInputElement).value = '';
+    this.clearModalErrors('item');
+    
+    // Restore body scroll
+    document.body.style.overflow = '';
   }
 
   addItemFromModal(): void {
@@ -908,19 +1328,110 @@ export class BillCalculatorUI {
 
     const itemNameInput = document.getElementById('modalItemName') as HTMLInputElement;
     const itemPriceInput = document.getElementById('modalItemPrice') as HTMLInputElement;
+    const addButton = document.getElementById('addItemBtn')! as HTMLInputElement;
     
     const itemName = itemNameInput.value.trim();
     const itemPrice = parseFloat(itemPriceInput.value);
     
-    if (!itemName || isNaN(itemPrice) || itemPrice <= 0) {
-      alert('Please enter valid item name and price');
+    // Clear previous errors
+    this.clearModalErrors('item');
+    
+    let hasErrors = false;
+    
+    // Validation
+    if (!itemName) {
+      this.showModalError('item', 'itemName', 'Please enter an item name');
+      hasErrors = true;
+    } else if (itemName.length < 2) {
+      this.showModalError('item', 'itemName', 'Item name must be at least 2 characters');
+      hasErrors = true;
+    }
+    
+    if (!itemPriceInput.value || isNaN(itemPrice)) {
+      this.showModalError('item', 'itemPrice', 'Please enter a valid price');
+      hasErrors = true;
+    } else if (itemPrice <= 0) {
+      this.showModalError('item', 'itemPrice', 'Price must be greater than 0');
+      hasErrors = true;
+    } else if (itemPrice > 9999.99) {
+      this.showModalError('item', 'itemPrice', 'Price cannot exceed $9,999.99');
+      hasErrors = true;
+    }
+
+    if (hasErrors) {
+      if (!itemName) itemNameInput.focus();
+      else if (!itemPriceInput.value || isNaN(itemPrice)) itemPriceInput.focus();
       return;
     }
 
-    this.calculator.addItem(this.currentBillId, itemName, itemPrice);
-    this.closeItemModal();
-    this.updateSummaryTable();
+    // Show loading state
+    addButton.classList.add('loading');
+    addButton.disabled = true;
+
+    // Simulate API call delay (remove in production)
+    // setTimeout(() => {
+      this.calculator.addItem(this.currentBillId!, itemName, itemPrice);
+      this.closeItemModal();
+      this.updateSummaryTable();
+      
+      // Remove loading state
+      addButton.classList.remove('loading');
+      addButton.disabled = false;
+    // }, 300);
   }
+
+  private clearModalErrors(modalType: 'person' | 'item'): void {
+    if (modalType === 'person') {
+      const errorElement = document.getElementById('personNameError');
+      if (errorElement) {
+        errorElement.style.display = 'none';
+        errorElement.textContent = '';
+      }
+      const input = document.getElementById('modalPersonName') as HTMLInputElement;
+      if (input) input.classList.remove('error');
+    } else {
+      const nameError = document.getElementById('itemNameError');
+      const priceError = document.getElementById('itemPriceError');
+      
+      if (nameError) {
+        nameError.style.display = 'none';
+        nameError.textContent = '';
+      }
+      if (priceError) {
+        priceError.style.display = 'none';
+        priceError.textContent = '';
+      }
+      
+      const nameInput = document.getElementById('modalItemName') as HTMLInputElement;
+      const priceInput = document.getElementById('modalItemPrice') as HTMLInputElement;
+      
+      if (nameInput) nameInput.classList.remove('error');
+      if (priceInput) priceInput.classList.remove('error');
+    }
+  }
+
+  private showModalError(modalType: 'person' | 'item', field: string, message: string): void {
+    if (modalType === 'person') {
+      const errorElement = document.getElementById('personNameError');
+      const input = document.getElementById('modalPersonName') as HTMLInputElement;
+      
+      if (errorElement) {
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
+      }
+      if (input) input.classList.add('error');
+    } else {
+      const errorElement = document.getElementById(field === 'itemName' ? 'itemNameError' : 'itemPriceError');
+      const input = document.getElementById(field === 'itemName' ? 'modalItemName' : 'modalItemPrice') as HTMLInputElement;
+      
+      if (errorElement) {
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
+      }
+      if (input) input.classList.add('error');
+    }
+  }
+
 
   addItem(): void {
     // This method is kept for backward compatibility but now redirects to modal
@@ -1146,10 +1657,10 @@ export class BillCalculatorUI {
 
     // Add keyboard support for modals
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && document.getElementById('personInputModal')!.style.display === 'block') {
+      if (e.key === 'Enter' && document.getElementById('personInputModal')!.style.display === 'flex') {
         this.addPersonFromModal();
       }
-      if (e.key === 'Enter' && document.getElementById('itemInputModal')!.style.display === 'block') {
+      if (e.key === 'Enter' && document.getElementById('itemInputModal')!.style.display === 'flex') {
         this.addItemFromModal();
       }
       if (e.key === 'Escape') {
