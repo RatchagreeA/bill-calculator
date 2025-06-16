@@ -1,6 +1,7 @@
 # Bill Calculator 📊
 
-A modern, responsive web application for splitting bills among multiple people with an intuitive interface and powerful features.
+A modern, responsive web application for splitting bills among multiple people with an intuitive interface and powerful features.  
+[Try it!](https://RatchagreeA.github.io/bill-calculator)
 
 ![Bill Calculator Demo](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
 ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
@@ -61,31 +62,24 @@ A modern, responsive web application for splitting bills among multiple people w
    cd bill-calculator
    ```
 
-2. **Install dependencies** (if using TypeScript compiler)
+2. **Install dependencies**
    ```bash
-   npm install -g typescript
+   npm install
    ```
 
-3. **Compile TypeScript** (if needed)
+3. **Serve the application**
    ```bash
-   tsc src/*.ts --outDir dist --target ES2020 --module ESNext
+   npm run dev
    ```
 
-4. **Serve the application**
-   ```bash
-   # Using Python
-   python -m http.server 8000
-   
-   # Using Node.js
-   npx serve .
-   
-   # Using PHP
-   php -S localhost:8000
-   ```
-
-5. **Open in browser**
+4. **Open in browser**
    ```
    http://localhost:8000
+   ```
+
+5. **Serve built files**
+   ```bash
+   npm start
    ```
 
 ### File Structure

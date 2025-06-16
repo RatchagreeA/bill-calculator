@@ -16,6 +16,8 @@ export declare class BillCalculatorUI {
     showItemModal(): void;
     closeItemModal(): void;
     addItemFromModal(): void;
+    private clearModalErrors;
+    private showModalError;
     addItem(): void;
     toggleDividerFromTable(itemId: string, personId: string): void;
     removePerson(personId: string): void;
