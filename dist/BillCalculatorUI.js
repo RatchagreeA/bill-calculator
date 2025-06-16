@@ -14,7 +14,7 @@ export class BillCalculatorUI {
         document.body.innerHTML = `
       <div class="container">
         <div class="app-header">
-          <h1>Bill Calculator</h1>
+          <h1>💰 Bill Calculator</h1>
           <button id="themeToggle" class="theme-toggle" onclick="billUI.toggleTheme()">
             <span class="theme-icon">🌙</span>
             <span class="theme-text">Dark</span>
@@ -23,10 +23,10 @@ export class BillCalculatorUI {
         
         <!-- Bill Management -->
         <div class="section">
-          <h2>Bills</h2>
-          <div class="form-group">
-            <input type="text" id="billName" placeholder="Enter bill name">
-            <button onclick="billUI.createNewBill()">Create Bill</button>
+          <h2>📋 Bill Management</h2>
+          <div class="input-group">
+            <input type="text" id="billName" class="input-field" placeholder="Enter bill name" maxlength="100">
+            <button onclick="billUI.createNewBill()" class="btn btn-primary">Create Bill</button>
           </div>
           <div id="billsList"></div>
         </div>
@@ -279,6 +279,78 @@ export class BillCalculatorUI {
           border-radius: 8px; 
         }
 
+        .input-group {
+          display: flex;
+          gap: 10px;
+          margin-bottom: 15px;
+        }
+
+        .input-field {
+          flex: 1;
+          padding: 12px 16px;
+          border: 2px solid var(--border-color);
+          border-radius: 8px;
+          font-size: 16px;
+          color: var(--text-primary);
+          background: var(--bg-primary);
+          transition: all 0.2s ease;
+          max-width: 300px;
+        }
+
+        .input-field:focus {
+          outline: none;
+          border-color: var(--btn-primary);
+          box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        }
+
+        .btn {
+          padding: 12px 20px;
+          border: none;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+          background-color: var(--btn-primary);
+          color: white;
+        }
+        .btn-primary:hover { 
+          background-color: var(--btn-primary-hover); 
+          transform: translateY(-2px);
+        }
+
+        .btn-success {
+          background-color: var(--btn-success);
+          color: white;
+        }
+        .btn-success:hover { 
+          background-color: var(--btn-success-hover); 
+          transform: translateY(-2px);
+        }
+
+        .btn-danger {
+          background-color: var(--btn-danger);
+          color: white;
+        }
+        .btn-danger:hover { 
+          background-color: var(--btn-danger-hover); 
+          transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+          background-color: var(--btn-secondary);
+          color: white;
+        }
+        .btn-secondary:hover { 
+          background-color: var(--btn-secondary-hover); 
+          transform: translateY(-2px);
+        }
+
         .subsection { 
           margin-bottom: 20px; 
           padding: 15px; 
@@ -327,9 +399,10 @@ export class BillCalculatorUI {
           margin-top: 15px;
         }
         .bill-item { 
-          flex: 1 1 300px;
+          flex: 1 1 180px;
           min-width: 280px;
-          max-width: 350px;
+          max-width: 300px;
+          max-height: 120px;
           padding: 15px; 
           background-color: var(--bg-tertiary); 
           border-radius: 8px; 
